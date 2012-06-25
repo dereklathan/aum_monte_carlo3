@@ -1,0 +1,21 @@
+test#name of vtf file
+20 20 20#x y z lengths for cube
+1#temperature of cube
+20#number of timesteps
+200#graph interval (create graph every time this many timesteps have passed)
+1#how many particle types to define
+0#boundary conditions for x-axis. 0 for periodic.
+0#boundary conditions for y-axis. 0 for periodic.
+0#boundary conditions for z-axis. 0 for periodic.
+
+particle1#name of first particle type
+0#mass of first particle
+30#percent of domain to fill with this particle type
+1#interaction strength factor
+0#1 if fixed location 0 if not
+
+particle2#name of second particle type
+2#mass of second particle
+5#percent of domain to fill with this type
+2#interaction strength factor
+1#1 if fixed location 0 if not
