@@ -1,6 +1,7 @@
 #ifndef CUBE_H
 #define CUBE_H
 #include <iostream>
+#include <fstream>
 #include <ctime>
 #include <cstdlib>
 #include <cmath>
@@ -60,6 +61,13 @@ class Cube{
 		//for particle. second 3 are where the particle will be when 
 		//energy is calculated.
 		bool can_still_move();
+		double calculate_pot_energy_opentop();
+		//calculates potential energy of system for periodic boundary
+		//conditions on x and y axes and open end on z axis.
+		double calculate_pot_energy_opentop(int, int, int, int, int, int);
+		void advance_timestep_opentop();
 
+		vector<string> toAppend();
+		//return vector of newly created atoms for defining in vtf file
 };
 #endif
