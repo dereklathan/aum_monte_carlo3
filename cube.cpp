@@ -211,6 +211,7 @@ void Cube::advance_timestep_opentop(){
 			}
 			else{
 				atomlocation[x2][y2][z2]=atomlocation[x1][y1][z1];
+				atomlocation[x2][y2][z2].set_exists(true);
 				atomlocation[x1][y1][z1].set_exists(false);
 				atomlocation[x2][y2][z2].set_x_pos(x2);
 				atomlocation[x2][y2][z2].set_y_pos(y2);
