@@ -112,51 +112,52 @@ void Cube::advance_timestep_pbc(){
 	int x1, y1, z1, x2, y2, z2;
 	int rand_axis, rand_dir, dir;
 	left_to_attempt=population-fixedcount;
+	vector<Atom> unattempted;
+	for(int c=0;c<domain_x;c++){
+		for(int d=0;d<domain_y;d++){
+			for(int e=0;e<domain_z;e++){
+				if(atomlocation[c][d][e].get_exists() && !atomlocation[c][d][e].is_fixed())
+					unattempted.push_back(atomlocation[c][d][e]);
+			}
+		}
+	}		
+					
 	while(!all_attempted()){
-		x1=rand()%domain_x;
-		y1=rand()%domain_y;
-		z1=rand()%domain_z;
-		if(atomlocation[x1][y1][z1].get_exists() && !atomlocation[x1][y1][z1].get_attempted()){
-			rand_axis=rand()%3;
-			rand_dir=rand()%2;
-			x2=x1;
-			y2=y1;
-			z2=z1;
-			if(rand_dir==0)	dir=1;
-			else dir=-1;
-			if(rand_axis==0) x2+=dir;
-			else if(rand_axis==1) y2+=dir;
-			else z2+=dir;
-			if(x2<0) x2=domain_x-1;
-			else if(x2>=domain_x) x2=0;
-			if(y2<0) y2=domain_y-1;
-			else if(y2>=domain_y) y2=0;
-			if(z2<0) z2=domain_z-1;
-			else if(z2>=domain_z) z2=0;
-			atomlocation[x1][y1][z1].set_attempted(true);
-			left_to_attempt--;
-			if(!atomlocation[x2][y2][z2].get_exists() && (calculate_pot_energy_pbc(x1,y1,z1,x2,y2,z2)<=calculate_pot_energy_pbc() || can_still_move())){
+		int index = rand()%unattempted.size();
+		x1=unattempted[index].get_x_pos();
+		y1=unattempted[index].get_y_pos();
+		z1=unattempted[index].get_z_pos();
+		unattempted[index]=unattempted[unattempted.size()-1];
+		unattempted.pop_back();
+		rand_axis=rand()%3;
+		rand_dir=rand()%2;
+		x2=x1;
+		y2=y1;
+		z2=z1;
+		if(rand_dir==0)	dir=1;
+		else dir=-1;
+		if(rand_axis==0) x2+=dir;
+		else if(rand_axis==1) y2+=dir;
+		else z2+=dir;
+		if(x2<0) x2=domain_x-1;
+		else if(x2>=domain_x) x2=0;
+		else if(y2<0) y2=domain_y-1;
+		else if(y2>=domain_y) y2=0;
+		else if(z2<0) z2=domain_z-1;
+		else if(z2>=domain_z) z2=0;
+		left_to_attempt--;
+		if(!atomlocation[x2][y2][z2].get_exists() && (calculate_pot_energy_pbc(x1,y1,z1,x2,y2,z2)<=calculate_pot_energy_pbc() || can_still_move())){
 				atomlocation[x2][y2][z2]=atomlocation[x1][y1][z1];
 				atomlocation[x1][y1][z1].set_exists(false);
 				atomlocation[x2][y2][z2].set_exists(true);
 				atomlocation[x2][y2][z2].set_x_pos(x2);
 				atomlocation[x2][y2][z2].set_y_pos(y2);
 				atomlocation[x2][y2][z2].set_z_pos(z2);
-			}			
-		}
+		}			
 	}
-	for(int c=0;c<domain_x;c++){
-		for(int d=0;d<domain_y;d++){
-			for(int e=0;e<domain_z;e++){
-				if(atomlocation[c][d][e].get_exists() && !atomlocation[c][d][e].is_fixed())
-					atomlocation[c][d][e].set_attempted(false);
-			}
-		}
-	}
-	cout << time(NULL)-start_time << endl;
+	//cout << time(NULL)-start_time << endl;
 
 }
-
 void Cube::advance_timestep_opentop(){
 	int x1, x2, y1, y2, z1, z2, index;
 	int start_time=time(NULL);
