@@ -5,6 +5,8 @@ Cube::Cube(){
 	srand(time(NULL));
 	population=0;
 	fixedcount=0;
+	n1=0;
+	n2=0;
 }
 
 void Cube::set_domain(int x, int y, int z){
@@ -159,6 +161,8 @@ void Cube::advance_timestep_pbc(){
 
 }
 void Cube::advance_timestep_opentop(){
+	n1=0;
+	n2=0;
 	int x1, x2, y1, y2, z1, z2, index;
 	int start_time=time(NULL);
 	int rand_axis, rand_dir, dir;
@@ -196,6 +200,7 @@ void Cube::advance_timestep_opentop(){
 			
 				if(z2>=domain_z){
 					atomlocation[x1][y1][z1].set_exists(false);
+					n2++;
 				}
 				else if(z1==0 && z2==1 && atomlocation[x1][y1][z1].get_replaceable()){
 					atomlocation[x2][y2][z2]=atomlocation[x1][y1][z1];
@@ -205,6 +210,7 @@ void Cube::advance_timestep_opentop(){
 					atomlocation[x2][y2][z2].set_y_pos(y2);
 					atomlocation[x2][y2][z2].set_z_pos(z2);
 					atomlocation[x1][y1][z1].set_exists(false);
+					n1++;
 					insert_atom(atomlocation[x1][y1][z1], x1, y1, z1);
 					atomlocation[x1][y1][z1].set_replaceable(true);
 					atomlocation[x1][y1][z1].set_exists(true);
@@ -547,6 +553,17 @@ bool Cube::can_still_move(){
 	double r = rand()/(double)RAND_MAX;
 	if(r<=(double)pow((double)2.71828,(double)-1/temperature))
 		return true;
+	else
+		return false;
+}
+
+bool Cube::obc_eq(){
+	if(n1==0)
+		return false;
+	else if(fabs(n2-n1)/n1 < 0.05){
+		cout << "q = " << (n2+n1)/2 << endl;
+		return true;
+	}
 	else
 		return false;
 }

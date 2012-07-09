@@ -18,6 +18,7 @@ class Cube{
 		int temperature;
 		double ** interaction_factor;
 		int fixedcount;
+		double n1, n2;
 
 	public:
 		bool attempted[];
@@ -66,7 +67,8 @@ class Cube{
 		//conditions on x and y axes and open end on z axis.
 		double calculate_pot_energy_opentop(int, int, int, int, int, int);
 		void advance_timestep_opentop();
-
+		bool obc_eq();
+		//returns true if in equilibrium for opentop boundary conditions
 		vector<string> toAppend();
 		//return vector of newly created atoms for defining in vtf file
 };
