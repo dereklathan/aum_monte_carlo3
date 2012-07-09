@@ -36,21 +36,13 @@ int main(){
 		atom.set_strength(infile_reader.get_strength()[c]);
 		atom.set_mass(infile_reader.get_mass()[c]);
 		atom.set_fixed(infile_reader.is_fixed()[c]);
-		for(int d=0;d<((float)cube.get_domain_x()*(float)cube.get_domain_y()*infile_reader.getpercentdomainfill()[c])/100;d++){
+		for(float d=0;d<((float)cube.get_domain_x()*(float)cube.get_domain_y()*infile_reader.getpercentdomainfill()[c])/100;d++){
+			atom.set_replaceable(true);
 			while(!cube.insert_atom(atom, rand()%cube.get_domain_x(), rand()%cube.get_domain_y(), 0));
-			//vtf_writer.define_atom(atom);
 		}		
 	}
 	vtf_writer.define_atoms(0,10000,"particle");
-/*	for(int c=0;c<cube.get_domain_x();c++){
-		for(int d=0;d<cube.get_domain_y();d++){
-			for(int e=0;e<cube.get_domain_z();e++){
-				if(cube.get_atom(c,d,e).get_exists())
-					cout << cube.get_atom(c,d,e).get_index() << " " << cube.get_atom(c,d,e).get_x_pos() << " " << cube.get_atom(c,d,e).get_y_pos() << " " << cube.get_atom(c,d,e).get_z_pos() << endl;
-			}
-		}
-	}
-*/	vtf_writer.write_timestep(cube);
+	vtf_writer.write_timestep(cube);
 	dat_writer.write_timestep_graph_z(cube,0);
 	cube.set_interaction_factor(infile_reader.get_particle_types());
 	for(int c=0;c<infile_reader.gettimesteps();c++){

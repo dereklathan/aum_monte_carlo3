@@ -17,6 +17,7 @@ class Atom{
 		double strength;
 		int index;
 		int atom_type_num;
+		bool replaceable;
 
 	public:
 		Atom();
@@ -69,6 +70,8 @@ class Atom{
 		//set type number for interaction factor matrix
 		int get_type_num();
 		//returns type number for interaction factor matrix
+		void set_replaceable(bool);
+		bool get_replaceable();
 		
 };
 

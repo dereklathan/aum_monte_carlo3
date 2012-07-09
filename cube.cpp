@@ -181,7 +181,6 @@ void Cube::advance_timestep_opentop(){
 		z2=z1;
 		rand_axis = rand()%3;
 		rand_dir = rand()%2;
-		cout << rand_axis << " " << rand_dir << endl;
 		if(rand_dir==0) dir=1;
 		else dir=-1;
 		if(rand_axis==0) x2+=dir;
@@ -191,34 +190,39 @@ void Cube::advance_timestep_opentop(){
 		else if(x2<0) x2=domain_x-1;
 		if(y2>=domain_y) y2=0;
 		else if(y2<0) y2=domain_y-1;
-		cout << x2 << " " << y2 << " " << z2 << endl;
 		if(z2>=0 && !atomlocation[x2][y2][z2].get_exists()){
-			
-			
+
 			if(calculate_pot_energy_opentop(x1,y1,z1,x2,y2,z2)<=calculate_pot_energy_opentop() || can_still_move()){
 			
-			if(z2>=domain_z)
-				atomlocation[x1][y1][z1].set_exists(false);
-			else if(z1==0 && z2==1){
-				atomlocation[x2][y2][z2]=atomlocation[x1][y1][z1];
-				atomlocation[x2][y2][z2].set_exists(true);
-				atomlocation[x2][y2][z2].set_x_pos(x2);
-				atomlocation[x2][y2][z2].set_y_pos(y2);
-				atomlocation[x2][y2][z2].set_z_pos(z2);
-				atomlocation[x1][y1][z1].set_exists(false);
-				insert_atom(atomlocation[x1][y1][z1], x1, y1, z1);
-				cout << atomlocation[x2][y2][z2].get_exists() << endl;
-			}
-			else{
-				atomlocation[x2][y2][z2]=atomlocation[x1][y1][z1];
-				atomlocation[x2][y2][z2].set_exists(true);
-				atomlocation[x1][y1][z1].set_exists(false);
-				atomlocation[x2][y2][z2].set_x_pos(x2);
-				atomlocation[x2][y2][z2].set_y_pos(y2);
-				atomlocation[x2][y2][z2].set_z_pos(z2);
-			}
-				cout << atomlocation[x2][y2][z2].get_x_pos() << " " << atomlocation[x2][y2][z2].get_y_pos() << " " << atomlocation[x2][y2][z2].get_z_pos() << endl; 
-		}} 
+				if(z2>=domain_z){
+					atomlocation[x1][y1][z1].set_exists(false);
+				}
+				else if(z1==0 && z2==1 && atomlocation[x1][y1][z1].get_replaceable()){
+					atomlocation[x2][y2][z2]=atomlocation[x1][y1][z1];
+					atomlocation[x2][y2][z2].set_replaceable(false);
+					atomlocation[x2][y2][z2].set_exists(true);
+					atomlocation[x2][y2][z2].set_x_pos(x2);
+					atomlocation[x2][y2][z2].set_y_pos(y2);
+					atomlocation[x2][y2][z2].set_z_pos(z2);
+					atomlocation[x1][y1][z1].set_exists(false);
+					insert_atom(atomlocation[x1][y1][z1], x1, y1, z1);
+					atomlocation[x1][y1][z1].set_replaceable(true);
+					atomlocation[x1][y1][z1].set_exists(true);
+				}
+				else{
+					atomlocation[x2][y2][z2]=atomlocation[x1][y1][z1];
+					atomlocation[x2][y2][z2].set_exists(true);
+					if(z1==0 && z2==0 && atomlocation[x1][y1][z1].get_replaceable())
+						atomlocation[x2][y2][z2].set_replaceable(true);
+					else
+						atomlocation[x2][y2][z2].set_replaceable(false);
+					atomlocation[x1][y1][z1].set_exists(false);
+					atomlocation[x2][y2][z2].set_x_pos(x2);
+					atomlocation[x2][y2][z2].set_y_pos(y2);
+					atomlocation[x2][y2][z2].set_z_pos(z2);
+				}
+			}	
+		}
 		unattempted[index]=unattempted[unattempted.size()-1];
 		unattempted.pop_back();
 	}
@@ -306,7 +310,13 @@ double Cube::calculate_pot_energy_pbc(){
 double Cube::calculate_pot_energy_pbc(int x1, int y1, int z1, int x2, int y2, int z2){
 	double grav_energy=0;
 	double internal_energy=0;
-	Atom ***temp = atomlocation;
+	Atom temp[domain_x][domain_y][domain_z];
+	for(int c=0;c<domain_x;c++){
+		for(int d=0;d<domain_y;d++){
+			for(int e=0;e<domain_z;e++)
+				temp[c][d][e]=atomlocation[c][d][e];
+		}
+	}
 	if(true/*x1>=0 && x1<domain_x && x2>=0 && x2<domain_x && y1>=0 && y1<domain_y && y2>=0 && y2<domain_y && z1>=0 && z1<domain_z && z2>=0 && z2<domain_z && temp[x1][y1][z1].get_exists() && !temp[x2][y2][z2].get_exists() && !temp[x2][y2][z2].is_fixed()*/){
 		temp[x2][y2][z2]=temp[x1][y1][z1];
 		temp[x2][y2][z2].set_x_pos(x2);
@@ -441,14 +451,19 @@ double Cube::calculate_pot_energy_opentop(){
 			}
 		}
 	}
-
 	return grav_energy + (internal_energy/2);
 }
 
 double Cube::calculate_pot_energy_opentop(int x1, int y1, int z1, int x2, int y2, int z2){
 	double grav_energy=0;
 	double internal_energy=0;
-	Atom ***temp = atomlocation;
+	Atom temp[domain_x][domain_y][domain_z];
+	for(int c=0;c<domain_x;c++){
+		for(int d=0;d<domain_y;d++){
+			for(int e=0;e<domain_z;e++)
+				temp[c][d][e]=atomlocation[c][d][e];
+		}
+	}
 	if(z2>=domain_z)
 		temp[x1][y1][z1].set_exists(false);
 	else if(z2<0 && (x1!=x2 || y1!=y2)){

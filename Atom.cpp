@@ -4,6 +4,7 @@ using namespace std;
 Atom::Atom(){
 	exists = false;
 	attempted = false;
+	replaceable=false;
 }
 
 void Atom::set_name(string atomname){
@@ -84,6 +85,10 @@ int Atom::get_index(){return index;}
 void Atom::set_type_num(int t){atom_type_num=t;}
 
 int Atom::get_type_num(){return atom_type_num;}
+
+void Atom::set_replaceable(bool n){replaceable=n;}
+
+bool Atom::get_replaceable(){return replaceable;}
 
 
 
