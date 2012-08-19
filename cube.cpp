@@ -5,8 +5,8 @@ Cube::Cube(){
 	srand(time(NULL));
 	population=0;
 	fixedcount=0;
-	n1=0;
-	n2=0;
+	flux_in=0;
+	flux_out=0;
 }
 
 void Cube::set_domain(int x, int y, int z){
@@ -20,6 +20,18 @@ void Cube::set_domain(int x, int y, int z){
 	for(int c=0;c<x;c++){
 		for(int d=0;d<=y;d++)
 			atomlocation[c][d] = new Atom[z];
+	}
+}
+
+void Cube::clear(){
+	population=0;
+	fixedcount=0;
+	for(int c=0;c<domain_x;c++){
+		for(int d=0;d<domain_y;d++){
+			for(int e=0;e<domain_z;e++){
+				atomlocation[c][d][e].set_exists(false);
+			}
+		}
 	}
 }
 
@@ -99,7 +111,7 @@ bool Cube::get_occupy_space(int x, int y, int z){
 		return false;
 }
 
-int Cube::get_population(){return population;}
+double Cube::get_population(){return population;}
 
 bool Cube::all_attempted(){
 	if(left_to_attempt==0)
@@ -110,7 +122,6 @@ bool Cube::all_attempted(){
 }
 
 void Cube::advance_timestep_pbc(){
-	int start_time=time(NULL);
 	int x1, y1, z1, x2, y2, z2;
 	int rand_axis, rand_dir, dir;
 	left_to_attempt=population-fixedcount;
@@ -157,14 +168,12 @@ void Cube::advance_timestep_pbc(){
 				atomlocation[x2][y2][z2].set_z_pos(z2);
 		}			
 	}
-	//cout << time(NULL)-start_time << endl;
 
 }
 void Cube::advance_timestep_opentop(){
-	n1=0;
-	n2=0;
+	flux_in=0;
+	flux_out=0;
 	int x1, x2, y1, y2, z1, z2, index;
-	int start_time=time(NULL);
 	int rand_axis, rand_dir, dir;
 	vector<Atom> unattempted;
 	for(int c=0;c<domain_x;c++){
@@ -197,10 +206,10 @@ void Cube::advance_timestep_opentop(){
 		if(z2>=0 && !atomlocation[x2][y2][z2].get_exists()){
 
 			if(calculate_pot_energy_opentop(x1,y1,z1,x2,y2,z2)<=calculate_pot_energy_opentop() || can_still_move()){
-			
 				if(z2>=domain_z){
 					atomlocation[x1][y1][z1].set_exists(false);
-					n2++;
+					population--;
+					flux_out++;
 				}
 				else if(z1==0 && z2==1 && atomlocation[x1][y1][z1].get_replaceable()){
 					atomlocation[x2][y2][z2]=atomlocation[x1][y1][z1];
@@ -210,7 +219,7 @@ void Cube::advance_timestep_opentop(){
 					atomlocation[x2][y2][z2].set_y_pos(y2);
 					atomlocation[x2][y2][z2].set_z_pos(z2);
 					atomlocation[x1][y1][z1].set_exists(false);
-					n1++;
+					flux_in++;
 					insert_atom(atomlocation[x1][y1][z1], x1, y1, z1);
 					atomlocation[x1][y1][z1].set_replaceable(true);
 					atomlocation[x1][y1][z1].set_exists(true);
@@ -234,7 +243,7 @@ void Cube::advance_timestep_opentop(){
 	}
 }
 
-void Cube::set_interaction_factor(int types){
+double ** Cube::set_interaction_factor(int types){
 	interaction_factor = new double*[types];
 	for(int c=0;c<types;c++)
 		interaction_factor[c] = new double[types];
@@ -242,6 +251,11 @@ void Cube::set_interaction_factor(int types){
 		for(int d=0;d<types;d++)
 			cin >> interaction_factor[c][d];
 	}
+	return interaction_factor;
+}
+
+void Cube::set_interaction_factor(double ** i_factor){
+	interaction_factor=i_factor;
 }
 
 double Cube::calculate_pot_energy_pbc(){
@@ -444,8 +458,10 @@ double Cube::calculate_pot_energy_opentop(){
 					}
 					if(e==0 && atomlocation[c][d][1].get_exists())
 						internal_energy+=(atomlocation[c][d][e].get_strength()*atomlocation[c][d][1].get_strength()*interaction_factor[atomlocation[c][d][e].get_type_num()][atomlocation[c][d][1].get_type_num()]);
-					else if(e==domain_z-1 && atomlocation[c][d][domain_z-2].get_exists())
+					else if(e==domain_z-1){
+						if(atomlocation[c][d][domain_z-2].get_exists())
 						internal_energy+=(atomlocation[c][d][e].get_strength()*atomlocation[c][d][domain_z-2].get_strength()*interaction_factor[atomlocation[c][d][e].get_type_num()][atomlocation[c][d][domain_z-2].get_type_num()]);
+					}
 					else{
 						if(atomlocation[c][d][e+1].get_exists())
 							internal_energy+=(atomlocation[c][d][e].get_strength()*atomlocation[c][d][e+1].get_strength()*interaction_factor[atomlocation[c][d][e].get_type_num()][atomlocation[c][d][e+1].get_type_num()]);
@@ -528,8 +544,10 @@ double Cube::calculate_pot_energy_opentop(int x1, int y1, int z1, int x2, int y2
 					}
 					if(e==0 && temp[c][d][1].get_exists())
 						internal_energy+=(temp[c][d][e].get_strength()*temp[c][d][1].get_strength()*interaction_factor[temp[c][d][e].get_type_num()][temp[c][d][1].get_type_num()]);
-					else if(e==domain_z-1 && temp[c][d][domain_z-2].get_exists())
+					else if(e==domain_z-1){
+						if(temp[c][d][domain_z-2].get_exists())
 						internal_energy+=(temp[c][d][e].get_strength()*temp[c][d][domain_z-2].get_strength()*interaction_factor[temp[c][d][e].get_type_num()][temp[c][d][domain_z-2].get_type_num()]);
+					}
 					else{
 						if(temp[c][d][e+1].get_exists())
 							internal_energy+=(temp[c][d][e].get_strength()*temp[c][d][e+1].get_strength()*interaction_factor[temp[c][d][e].get_type_num()][temp[c][d][e+1].get_type_num()]);
@@ -557,13 +575,20 @@ bool Cube::can_still_move(){
 		return false;
 }
 
+void Cube::seed_random(int n){srand(n);}
+
 bool Cube::obc_eq(){
-	if(n1==0)
+	if(flux_in==0 || flux_out==0)
 		return false;
-	else if(fabs(n2-n1)/n1 < 0.05){
-		cout << "q = " << (n2+n1)/2 << endl;
+	else if(fabs(flux_out-flux_in)/flux_in < 0.05){
+		cout << flux_in << " " << flux_out << endl;
+		cout << "q = " << (flux_out+flux_in)/2 << endl;
 		return true;
 	}
 	else
 		return false;
 }
+
+double Cube::get_flux_in(){return flux_in;}
+
+double Cube::get_flux_out(){return flux_out;}

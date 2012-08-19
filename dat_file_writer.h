@@ -22,6 +22,7 @@ class dat_file_writer{
 		//creates graph of number of particles vs layer of cube along y-axis int is timestep number
 		void write_timestep_graph_z(Cube, int);
 		//creates graph of number of particles vs layer of cube along z-axis int is timestep number
+		int * get_timestep_array_z(Cube);
 	
 
 	

@@ -14,6 +14,9 @@ void Infile_reader::setData(){
 		outfilename += (char)reader.get();
 	while(reader.peek()!='\n')
 		reader.get();
+	reader >> num_sims;
+	while(reader.peek()!='\n')
+		reader.get();
 	for(int c=0;c<3;c++)
 		reader >> unitcellsize[c];
 	while(reader.peek()!='\n')
@@ -118,4 +121,6 @@ int* Infile_reader::get_boundary_conditions(){
 }
 
 double Infile_reader::get_temp(){return temperature;}
+
+int Infile_reader::get_num_sims(){return num_sims;}
 

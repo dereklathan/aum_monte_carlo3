@@ -11,20 +11,21 @@
 class Cube{
 	private:
 		Atom *** atomlocation;
-		int population;
+		double population;
 		int left_to_attempt;
 		int domain_x, domain_y, domain_z;
 		bool all_attempted();
-		int temperature;
+		const double temperature;
+		double T;
 		double ** interaction_factor;
 		int fixedcount;
-		double n1, n2;
+		double flux_in, flux_out;
 
-	public:
-		bool attempted[];
-		int num_threads;		
+	public:		
 		Cube();
-		//constructor		
+		//constructor	
+		void clear();
+		//clears the cube
 		void set_domain(int, int, int);
 		//sets size of cube
 		int get_domain_x();
@@ -37,7 +38,8 @@ class Cube{
 		//returns volume of cube
 		void set_temp(double t);
 		//set temperature of cube
-		void set_interaction_factor(int);
+		double ** set_interaction_factor(int);
+		void set_interaction_factor(double**);
 		double get_temp();
 		//returns temperature of cube
 		Atom insert_atom(Atom&);
@@ -50,7 +52,7 @@ class Cube{
 		//given x,y,z coordinates respectively, sets space occupied(true) or vacant(false)
 		bool get_occupy_space(int, int, int);
 		//checks if a space is occupied given x,y,z coordinates respectively
-		int get_population();
+		double get_population();
 		//returns number of atoms in cube
 		void advance_timestep_pbc();
 		double calculate_pot_energy_pbc();
@@ -69,7 +71,13 @@ class Cube{
 		void advance_timestep_opentop();
 		bool obc_eq();
 		//returns true if in equilibrium for opentop boundary conditions
+		void seed_random(int);
+		//seed random number generator with int
 		vector<string> toAppend();
 		//return vector of newly created atoms for defining in vtf file
+		double get_flux_in();
+		//number of particles that entered domain after previous timestep;
+		double get_flux_out();
+		//number of particles that left the domain after previous timestep;
 };
 #endif

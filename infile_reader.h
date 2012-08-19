@@ -20,6 +20,7 @@ class Infile_reader{
 		int * strength;
 		int boundary_conditions[3];
 		double temperature;
+		int num_sims;
 		
 	public:
 		Infile_reader();
@@ -53,6 +54,8 @@ class Infile_reader{
 		//returns bool array that tells if location of particle is fixed
 		double get_temp();
 		//returns temperature of cube
+		int get_num_sims();
+		//returns number of simulations to run
 
 		
 };

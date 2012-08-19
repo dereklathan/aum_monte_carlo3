@@ -3,6 +3,22 @@ using namespace std;
 
 dat_file_writer::dat_file_writer(string outfilename){filename=outfilename;}
 
+int * dat_file_writer::get_timestep_array_z(Cube cube){
+	int layer_atom_count;
+	int * array = new int[cube.get_domain_z()];
+	for(int c=0;c<cube.get_domain_z();c++){
+		layer_atom_count=0;
+		for(int d=0;d<cube.get_domain_x();d++){
+			for(int e=0;e<cube.get_domain_y();e++){
+				if(cube.get_atom(d,e,c).get_exists())
+					layer_atom_count++;
+			}
+		}
+		array[c]=layer_atom_count;
+	}
+	return array;
+}
+
 void dat_file_writer::write_timestep_graph_z(Cube cube, int timestep){
 	int layer_atom_count;
 	stringstream convert;
