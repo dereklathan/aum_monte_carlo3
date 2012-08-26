@@ -14,9 +14,12 @@ class Infile_reader{
 		int timesteps;
 		int graph_interval;
 		unsigned int particle_types;
+		unsigned int nanoparticle_types;
 		unsigned int * mass;
 		string * particle_name;
 		bool * fixed;
+		bool * n_particle;
+		double * n_particle_temp;
 		int * strength;
 		int boundary_conditions[3];
 		double temperature;
@@ -52,10 +55,15 @@ class Infile_reader{
 		//returns array of particle interaction strengths;
 		bool* is_fixed();
 		//returns bool array that tells if location of particle is fixed
+		bool* is_nanoparticle();
+		//returns bool array that tells if particle is nanoparticle
+		double* get_nanoparticle_temp();
+		//returns T for nanoparticle locations
 		double get_temp();
 		//returns temperature of cube
 		int get_num_sims();
 		//returns number of simulations to run
+		int get_nanoparticle_types();
 
 		
 };

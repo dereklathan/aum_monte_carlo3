@@ -14,12 +14,16 @@ void Cube::set_domain(int x, int y, int z){
 	domain_y=y;
 	domain_z=z;
 	atomlocation = new Atom**[x];
+	nparticlelocation = new Nanoparticle**[x];
 	for(int c=0;c<x;c++){
 		atomlocation[c] = new Atom*[y];
+		nparticlelocation[c] = new Nanoparticle*[y];
 	}
 	for(int c=0;c<x;c++){
-		for(int d=0;d<=y;d++)
+		for(int d=0;d<=y;d++){
 			atomlocation[c][d] = new Atom[z];
+			nparticlelocation[c][d] = new Nanoparticle[z];
+		}
 	}
 }
 
@@ -30,6 +34,7 @@ void Cube::clear(){
 		for(int d=0;d<domain_y;d++){
 			for(int e=0;e<domain_z;e++){
 				atomlocation[c][d][e].set_exists(false);
+				nparticlelocation[c][d][e].set_exists(false);
 			}
 		}
 	}
@@ -75,6 +80,21 @@ Atom Cube::insert_atom(Atom &atom){
 	population++;
 	atomlocation[xval][yval][zval]=atom;
 	return atom;
+}
+
+Nanoparticle Cube::insert_nanoparticle(Nanoparticle &nparticle){
+	int xval, yval, zval;
+	xval=rand()%get_domain_x();
+	yval=rand()%get_domain_y();
+	zval=rand()%get_domain_z();
+	while(nparticlelocation[xval][yval][zval].get_exists()){
+		xval=rand()%get_domain_x();
+		yval=rand()%get_domain_y();
+		zval=rand()%get_domain_z();
+	}
+	nparticle.set_exists(true);
+	nparticlelocation[xval][yval][zval]=nparticle;
+	return nparticle;
 }
 
 bool Cube::insert_atom(Atom &atom, int x, int y, int z){
@@ -159,7 +179,8 @@ void Cube::advance_timestep_pbc(){
 		else if(z2<0) z2=domain_z-1;
 		else if(z2>=domain_z) z2=0;
 		left_to_attempt--;
-		if(!atomlocation[x2][y2][z2].get_exists() && (calculate_pot_energy_pbc(x1,y1,z1,x2,y2,z2)<=calculate_pot_energy_pbc() || can_still_move())){
+		if(!atomlocation[x2][y2][z2].get_exists() && ((calculate_pot_energy_pbc(x1,y1,z1,x2,y2,z2)<=calculate_pot_energy_pbc()) || can_still_move())){
+		
 				atomlocation[x2][y2][z2]=atomlocation[x1][y1][z1];
 				atomlocation[x1][y1][z1].set_exists(false);
 				atomlocation[x2][y2][z2].set_exists(true);
@@ -204,8 +225,12 @@ void Cube::advance_timestep_opentop(){
 		if(y2>=domain_y) y2=0;
 		else if(y2<0) y2=domain_y-1;
 		if(z2>=0 && !atomlocation[x2][y2][z2].get_exists()){
-
-			if(calculate_pot_energy_opentop(x1,y1,z1,x2,y2,z2)<=calculate_pot_energy_opentop() || can_still_move()){
+			if(nparticlelocation[x1][y1][z1].get_exists()){
+				T=nparticlelocation[x1][y1][z1].get_T();
+			}
+			else
+				T=temperature;
+			if((calculate_pot_energy_opentop(x1,y1,z1,x2,y2,z2)<=calculate_pot_energy_opentop()) || can_still_move()){
 				if(z2>=domain_z){
 					atomlocation[x1][y1][z1].set_exists(false);
 					population--;
@@ -568,8 +593,8 @@ void Cube::set_temp(double t){temperature=t;}
 double Cube::get_temp(){return temperature;}
 
 bool Cube::can_still_move(){
-	double r = rand()/(double)RAND_MAX;
-	if(r<=(double)pow((double)2.71828,(double)-1/temperature))
+	double r = (double)rand()/RAND_MAX;
+	if(r<=(double)pow((double)2.71828,(double)-1/T))
 		return true;
 	else
 		return false;

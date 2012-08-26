@@ -6,16 +6,18 @@
 #include <cstdlib>
 #include <cmath>
 #include "Atom.h"
+#include "nanoparticle.h"
 #include <vector>
 
 class Cube{
 	private:
 		Atom *** atomlocation;
+		Nanoparticle *** nparticlelocation;
 		double population;
 		int left_to_attempt;
 		int domain_x, domain_y, domain_z;
 		bool all_attempted();
-		const double temperature;
+		double temperature;
 		double T;
 		double ** interaction_factor;
 		int fixedcount;
@@ -44,8 +46,12 @@ class Cube{
 		//returns temperature of cube
 		Atom insert_atom(Atom&);
 		//inserts atom into random location in cube and returns it
+		Nanoparticle insert_nanoparticle(Nanoparticle&);
+		//inserts nanoparticle into random location in cube and returns it
 		bool insert_atom(Atom&, int, int, int);
 		//attempts to insert atom into specified location if possible. returns true if successful. false otherwise.
+		bool insert_nanoparticle(Nanoparticle&, int, int, int);
+		//attempts to insert nanoparticle into specified location if possible. returns true if successful. false otherwise.
 		Atom get_atom(int, int, int);
 		//returns atom from specified coordinates
 		void set_occupy_space(int, int, int, bool);

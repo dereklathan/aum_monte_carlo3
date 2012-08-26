@@ -9,6 +9,7 @@ Infile_reader::Infile_reader(string filename){
 }
 
 void Infile_reader::setData(){
+	nanoparticle_types=0;
 	outfilename="";
 	while(reader.peek()!='#')
 		outfilename += (char)reader.get();
@@ -38,6 +39,8 @@ void Infile_reader::setData(){
 	percentdomainfill = new float [particle_types];
 	strength = new int [particle_types];
 	fixed = new bool [particle_types];
+	n_particle = new bool [particle_types];
+	n_particle_temp = new double [particle_types];
 	while(reader.peek()!='\n')
 		reader.get();
 	reader >> boundary_conditions[0];
@@ -70,7 +73,16 @@ void Infile_reader::setData(){
 		reader >> fixed[c];
 		while(reader.peek()!='\n')
 			reader.get();
+		reader >> n_particle[c];
+		if(n_particle[c]==true)
+			nanoparticle_types++;
+		while(reader.peek()!='\n')
+			reader.get();
+		reader >> n_particle_temp[c];
+		while(reader.peek()!='\n')
+			reader.get();
 		reader.get();
+
 	}
 	reader.close();
 }
@@ -95,6 +107,8 @@ int Infile_reader::get_graph_interval(){return graph_interval;}
 
 int Infile_reader::get_particle_types(){return particle_types;}
 
+int Infile_reader::get_nanoparticle_types(){return nanoparticle_types;}
+
 string* Infile_reader::get_particle_name(){
 	string* pointer = particle_name;
 	return pointer;
@@ -112,6 +126,16 @@ int* Infile_reader::get_strength(){
 
 bool* Infile_reader::is_fixed(){
 	bool* pointer = fixed;
+	return pointer;
+}
+
+bool* Infile_reader::is_nanoparticle(){
+	bool* pointer = n_particle;
+	return pointer;
+}
+
+double* Infile_reader::get_nanoparticle_temp(){
+	double* pointer = n_particle_temp;
 	return pointer;
 }
 

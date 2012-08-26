@@ -1,5 +1,5 @@
-work : aum_monte_carlo3.o cube.o Atom.o infile_reader.o vtf_file_writer.o dat_file_writer.o
-	g++ -O3 aum_monte_carlo3.o cube.o Atom.o infile_reader.o vtf_file_writer.o dat_file_writer.o -o work
+work : aum_monte_carlo3.o cube.o Atom.o infile_reader.o vtf_file_writer.o dat_file_writer.o nanoparticle.o
+	g++ -O3 aum_monte_carlo3.o cube.o Atom.o infile_reader.o vtf_file_writer.o dat_file_writer.o nanoparticle.o -o work
 
 aum_monte_carlo_3.o : aum_monte_carlo3.cpp
 	g++ -O3 -c aum_monte_carlo3.cpp
@@ -18,6 +18,9 @@ vtf_file_writer.o : vtf_file_writer.cpp vtf_file_writer.h
 
 dat_file_writer.o : dat_file_writer.cpp dat_file_writer.h
 	g++ -O3 -c dat_file_writer.cpp
+
+nanoparticle.o : nanoparticle.cpp nanoparticle.h
+	g++ -O3 -c nanoparticle.cpp
 
 clean : 
 	rm *.o
