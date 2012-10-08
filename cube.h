@@ -21,7 +21,9 @@ class Cube{
 		double T;
 		double ** interaction_factor;
 		int fixedcount;
-		double flux_in, flux_out;
+		double flux_in, flux_out, E1, E2, dE;
+		void move_nanoparticles();
+		//moves all nanoparticles
 
 	public:		
 		Cube();

@@ -22,9 +22,9 @@ the particle will escape. diffusion.
 #include "vtf_file_writer.h"
 #include "dat_file_writer.h"
 
-int main(){
+int main(int argc, char *argv[]){
 	srand(time(NULL));
-	Infile_reader infile_reader("infile");
+	Infile_reader infile_reader((string)argv[1]);
 	infile_reader.setData();
 	cout << infile_reader.getpercentdomainfill()[1] << endl;
 	cout << infile_reader.get_nanoparticle_temp()[1] << endl;
@@ -74,12 +74,12 @@ int main(){
 		flux_out[c]=cube.get_flux_out();
 		for(int d=0;d<cube.get_domain_z();d++){
 			z_cent_mass[c]+=(d+1)*atom_layer_count[d];
-			//cout << atom_layer_count[d] << endl;
+			cout << atom_layer_count[d] << endl;
 		}
-		//cout << "total population: " << cube.get_population() << endl;
+		cout << "total population: " << cube.get_population() << endl;
 		z_cent_mass[c]/=(double)cube.get_population();
-		//cout << "center of mass: " << z_cent_mass[c] << endl;
-		vtf_writer.write_timestep(cube);
+		cout << "center of mass: " << z_cent_mass[c] << endl;
+		//vtf_writer.write_timestep(cube);
 		graph_interval++;
 		if(graph_interval==infile_reader.get_graph_interval()){
 			dat_writer.write_timestep_graph_z(cube, c+1);
@@ -87,7 +87,6 @@ int main(){
 		}
 		tcount=c+1;
 	}
-//	dat_writer.write_timestep_graph_z(cube,c);
 
 	ofstream z_cent_mass_file;
 	ofstream flux_in_file;

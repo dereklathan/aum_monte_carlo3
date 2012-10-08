@@ -1,10 +1,10 @@
-test_T10#name for output files
+test#name for output files
 1#number of simulations
-10 10 10#x y z lengths for cube
-10#temperature of cube
-300#number of timesteps
-250#graph interval (create graph every time this many timesteps have passed)
-1#how many particle types to define
+20 20 20#x y z lengths for cube
+0.32#temperature of cube
+100#number of timesteps
+20#graph interval (create graph every time this many timesteps have passed)
+2#how many particle types to define
 0#boundary conditions for x-axis. 0 for periodic.
 0#boundary conditions for y-axis. 0 for periodic.
 0#boundary conditions for z-axis. 0 for periodic.
@@ -18,9 +18,9 @@ particle1#name of first particle type
 1#T for nanoparticle. irrelevent if particle is not
 
 particle2#name of second particle type
-2#mass of second particle
-100#percent of domain to fill with this type
-2#interaction strength factor
+0#mass of second particle
+2#percent of domain to fill with this type
+1#interaction strength factor
 1#1 if fixed location 0 if not
 1#1 if nanoparticle 0 if not;
-5#T for nanoparticle. irrelevent if particle is not
+0.576#T for nanoparticle. irrelevent if particle is not

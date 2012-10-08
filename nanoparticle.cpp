@@ -16,3 +16,21 @@ using namespace std;
 	double Nanoparticle::get_T(){
 		return T;
 	}
+	void Nanoparticle::set_x_pos(int x){
+		x_pos=x;
+	}
+	void Nanoparticle::set_y_pos(int y){
+		y_pos=y;
+	}
+	void Nanoparticle::set_z_pos(int z){
+		z_pos=z;
+	}
+	int Nanoparticle::get_x_pos(){
+		return x_pos;
+	}
+	int Nanoparticle::get_y_pos(){
+		return y_pos;
+	}
+	int Nanoparticle::get_z_pos(){
+		return z_pos;
+	}

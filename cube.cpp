@@ -92,6 +92,9 @@ Nanoparticle Cube::insert_nanoparticle(Nanoparticle &nparticle){
 		yval=rand()%get_domain_y();
 		zval=rand()%get_domain_z();
 	}
+	nparticle.set_x_pos(xval);
+	nparticle.set_y_pos(yval);
+	nparticle.set_z_pos(zval);
 	nparticle.set_exists(true);
 	nparticlelocation[xval][yval][zval]=nparticle;
 	return nparticle;
@@ -192,6 +195,7 @@ void Cube::advance_timestep_pbc(){
 
 }
 void Cube::advance_timestep_opentop(){
+	int movecount=0;
 	flux_in=0;
 	flux_out=0;
 	int x1, x2, y1, y2, z1, z2, index;
@@ -228,9 +232,12 @@ void Cube::advance_timestep_opentop(){
 			if(nparticlelocation[x1][y1][z1].get_exists()){
 				T=nparticlelocation[x1][y1][z1].get_T();
 			}
+			else if(nparticlelocation[x2][y2][z2].get_exists())
+				T=nparticlelocation[x2][y2][z2].get_T();
 			else
 				T=temperature;
-			if((calculate_pot_energy_opentop(x1,y1,z1,x2,y2,z2)<=calculate_pot_energy_opentop()) || can_still_move()){
+			if(calculate_pot_energy_opentop(x1,y1,z1,x2,y2,z2)<=calculate_pot_energy_opentop() || can_still_move()){
+				movecount++;
 				if(z2>=domain_z){
 					atomlocation[x1][y1][z1].set_exists(false);
 					population--;
@@ -266,6 +273,8 @@ void Cube::advance_timestep_opentop(){
 		unattempted[index]=unattempted[unattempted.size()-1];
 		unattempted.pop_back();
 	}
+	move_nanoparticles();
+	cout << movecount << " have moved\n";
 }
 
 double ** Cube::set_interaction_factor(int types){
@@ -498,6 +507,8 @@ double Cube::calculate_pot_energy_opentop(){
 			}
 		}
 	}
+	E1=grav_energy + (internal_energy/2);
+	dE = E2-E1;
 	return grav_energy + (internal_energy/2);
 }
 
@@ -584,6 +595,7 @@ double Cube::calculate_pot_energy_opentop(int x1, int y1, int z1, int x2, int y2
 			}
 		}
 	}
+	E2=grav_energy + (internal_energy/2);
 	return grav_energy + (internal_energy/2);
 }
 
@@ -594,8 +606,9 @@ double Cube::get_temp(){return temperature;}
 
 bool Cube::can_still_move(){
 	double r = (double)rand()/RAND_MAX;
-	if(r<=(double)pow((double)2.71828,(double)-1/T))
+	if(r<=pow((double)2.71828,(double)(0-dE)/T)){
 		return true;
+	}
 	else
 		return false;
 }
@@ -617,3 +630,59 @@ bool Cube::obc_eq(){
 double Cube::get_flux_in(){return flux_in;}
 
 double Cube::get_flux_out(){return flux_out;}
+
+void Cube::move_nanoparticles(){
+	int axis, dir, dest_x, dest_y, dest_z, index;
+	vector<Nanoparticle> unmoved;
+	for(int c=0;c<domain_x;c++){
+		for(int d=0;d<domain_y;d++){
+			for(int e=0;e<domain_z;e++){
+				if(nparticlelocation[c][d][e].get_exists())
+					unmoved.push_back(nparticlelocation[c][d][e]);
+			}
+		}
+	}
+	while(unmoved.size()!=0){
+		index=rand()%unmoved.size();
+		dest_x=unmoved[index].get_x_pos();
+		dest_y=unmoved[index].get_y_pos();
+		dest_z=unmoved[index].get_z_pos();
+		axis=rand()%3;
+		dir=rand()%2;
+		if(dir==0)
+			dir=-1;
+		else
+			dir=1;
+		if(axis==0){
+			dest_x+=dir;
+			if(dest_x>=domain_x)
+				dest_x=0;
+			else if(dest_x<0)
+				dest_x=domain_x-1;
+		}
+		else if(axis==1){
+			dest_y+=dir;
+			if(dest_y>=domain_y)
+				dest_y=0;
+			else if(dest_y<0)
+				dest_y=domain_y-1;
+		}
+		else{
+			dest_z+=dir;
+			if(dest_z>=domain_z)
+				dest_z=0;
+			else if(dest_z<0)
+				dest_z=domain_z-1;
+		}
+		if(!nparticlelocation[dest_x][dest_y][dest_z].get_exists()){
+			nparticlelocation[unmoved[index].get_x_pos()][unmoved[index].get_y_pos()][unmoved[index].get_z_pos()].set_exists(false);
+			unmoved[index].set_x_pos(dest_x);
+			unmoved[index].set_y_pos(dest_y);
+			unmoved[index].set_z_pos(dest_z);
+			nparticlelocation[dest_x][dest_y][dest_z]=unmoved[index];
+		}
+		unmoved[index]=unmoved[unmoved.size()-1];
+		unmoved.pop_back();
+	}
+								
+}
