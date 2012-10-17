@@ -236,7 +236,7 @@ void Cube::advance_timestep_opentop(){
 				T=nparticlelocation[x2][y2][z2].get_T();
 			else
 				T=temperature;
-			if(calculate_pot_energy_opentop(x1,y1,z1,x2,y2,z2)<=calculate_pot_energy_opentop() || can_still_move()){
+			if(/*calculate_pot_energy_opentop(x1,y1,z1,x2,y2,z2)<=calculate_pot_energy_opentop()*/calculate_dE_opentop(x1,y1,z1,x2,y2,z2)<=0 || can_still_move()){
 				movecount++;
 				if(z2>=domain_z){
 					atomlocation[x1][y1][z1].set_exists(false);
@@ -597,6 +597,103 @@ double Cube::calculate_pot_energy_opentop(int x1, int y1, int z1, int x2, int y2
 	}
 	E2=grav_energy + (internal_energy/2);
 	return grav_energy + (internal_energy/2);
+}
+
+double Cube::calculate_dE_opentop(int x1,int y1,int z1,int x2, int y2, int z2){
+	double grav_energy=0;
+	double internal_energy=0;
+	Atom temp[5][5][5];
+	int x_index, y_index, dx, dy, dz;
+	for(int c=-2;c<3;c++){
+		if(x1+c<0)
+			x_index=domain_x+x1+c;
+		else if(x1+c>domain_x-1)
+			x_index=domain_x-1-x1+c;
+		else
+			x_index=x1+c;
+
+		for(int d=-2;d<3;d++){
+			if(y1+d<0)
+				y_index=domain_y+y1+d;
+			else if(y1+d>domain_y-1)
+				y_index=domain_y-1-y1+d;
+			else
+				y_index=y1+d;
+			//cout << x1 << " " << c << " " << x_index << " " << y1 << " " << d << " " << y_index << endl;
+			for(int e=-2;e<3;e++){
+				if(z1+e<0 || z1+e>domain_z-1)
+					temp[c+2][d+2][e+2].set_exists(false);
+				else{
+					temp[c+2][d+2][e+2]=atomlocation[x_index][y_index][z1+e];
+					temp[c+2][d+2][e+2].set_exists(true);
+				}
+			}
+		}
+	}
+	for(int c=0;c<5;c++){
+		for(int d=0;d<5;d++){
+			for(int e=0;e<5;e++){
+				if(temp[c][d][e].get_exists()){
+					grav_energy+=e*temp[c][d][e].get_mass();
+					if(c>0 && temp[c-1][d][e].get_exists())
+						internal_energy+=(temp[c][d][e].get_strength()*temp[c-1][d][e].get_strength()*interaction_factor[temp[c][d][e].get_type_num()][temp[c-1][d][e].get_type_num()]);
+					if(c<4 && temp[c+1][d][e].get_exists())
+						internal_energy+=(temp[c][d][e].get_strength()*temp[c+1][d][e].get_strength()*interaction_factor[temp[c][d][e].get_type_num()][temp[c+1][d][e].get_type_num()]);
+					if(d>0 && temp[c][d-1][e].get_exists())
+						internal_energy+=(temp[c][d][e].get_strength()*temp[c][d-1][e].get_strength()*interaction_factor[temp[c][d][e].get_type_num()][temp[c][d-1][e].get_type_num()]);
+					if(d<4 && temp[c][d+1][e].get_exists())
+						internal_energy+=(temp[c][d][e].get_strength()*temp[c][d+1][e].get_strength()*interaction_factor[temp[c][d][e].get_type_num()][temp[c][d+1][e].get_type_num()]);
+					if(e>0 && temp[c][d][e-1].get_exists())
+						internal_energy+=(temp[c][d][e].get_strength()*temp[c][d][e-1].get_strength()*interaction_factor[temp[c][d][e].get_type_num()][temp[c][d][e-1].get_type_num()]);
+					if(e<4 && temp[c][d][e+1].get_exists())
+						internal_energy+=(temp[c][d][e].get_strength()*temp[c][d][e+1].get_strength()*interaction_factor[temp[c][d][e].get_type_num()][temp[c][d][e+1].get_type_num()]);
+				}
+			}
+		}
+	}
+	E1=grav_energy+(internal_energy/2);
+	grav_energy=0;
+	internal_energy=0;
+	if(x1==0 && x2==domain_x-1)
+		dx=-1;
+	else if(x1==domain_x-1 && x2==0)
+		dx=1;
+	else
+		dx=x2-x1;
+	if(y1==0 && y2==domain_y-1)
+		dy=-1;
+	else if(y1==domain_y-1 && y2==0)
+		dy=1;
+	else
+		dy=y2-y1;
+	temp[2+dx][2+dy][2+z2-z1]=temp[2][2][2];
+	if(z1!=0 && z2!=1)
+		temp[2][2][2].set_exists(false);
+	for(int c=0;c<5;c++){
+		for(int d=0;d<5;d++){
+			for(int e=0;e<5;e++){
+				if(temp[c][d][e].get_exists()){
+					grav_energy+=e*temp[c][d][e].get_mass();
+					if(c>0 && temp[c-1][d][e].get_exists())
+						internal_energy+=(temp[c][d][e].get_strength()*temp[c-1][d][e].get_strength()*interaction_factor[temp[c][d][e].get_type_num()][temp[c-1][d][e].get_type_num()]);
+					if(c<4 && temp[c+1][d][e].get_exists())
+						internal_energy+=(temp[c][d][e].get_strength()*temp[c+1][d][e].get_strength()*interaction_factor[temp[c][d][e].get_type_num()][temp[c+1][d][e].get_type_num()]);
+					if(d>0 && temp[c][d-1][e].get_exists())
+						internal_energy+=(temp[c][d][e].get_strength()*temp[c][d-1][e].get_strength()*interaction_factor[temp[c][d][e].get_type_num()][temp[c][d-1][e].get_type_num()]);
+					if(d<4 && temp[c][d+1][e].get_exists())
+						internal_energy+=(temp[c][d][e].get_strength()*temp[c][d+1][e].get_strength()*interaction_factor[temp[c][d][e].get_type_num()][temp[c][d+1][e].get_type_num()]);
+					if(e>0 && temp[c][d][e-1].get_exists())
+						internal_energy+=(temp[c][d][e].get_strength()*temp[c][d][e-1].get_strength()*interaction_factor[temp[c][d][e].get_type_num()][temp[c][d][e-1].get_type_num()]);
+					if(e<4 && temp[c][d][e+1].get_exists())
+						internal_energy+=(temp[c][d][e].get_strength()*temp[c][d][e+1].get_strength()*interaction_factor[temp[c][d][e].get_type_num()][temp[c][d][e+1].get_type_num()]);
+				}
+			}
+		}
+	}
+	E2=grav_energy+(internal_energy/2);
+	dE=E2-E1;
+	return dE;
+	
 }
 
 

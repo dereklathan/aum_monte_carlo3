@@ -76,6 +76,11 @@ class Cube{
 		//calculates potential energy of system for periodic boundary
 		//conditions on x and y axes and open end on z axis.
 		double calculate_pot_energy_opentop(int, int, int, int, int, int);
+		//calculates potential energy after particle at x1,y1,z1 moves
+		//to x2,y2,z2
+		double calculate_dE_opentop(int, int, int, int, int, int);
+		//calculates difference in energy when particle at x1,y1,z1
+		//moves to x2,y2,z2
 		void advance_timestep_opentop();
 		bool obc_eq();
 		//returns true if in equilibrium for opentop boundary conditions
