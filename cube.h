@@ -23,6 +23,11 @@ class Cube{
 		int fixedcount;
 		double flux_in, flux_out, E1, E2, dE;
 		void move_nanoparticles();
+		void calc_rms(vector<Atom>);
+		vector<double> x_rms;
+		vector<double> y_rms;
+		vector<double> z_rms;
+
 		//moves all nanoparticles
 
 	public:		
@@ -92,5 +97,9 @@ class Cube{
 		//number of particles that entered domain after previous timestep;
 		double get_flux_out();
 		//number of particles that left the domain after previous timestep;
+		double get_x_rms(int);
+		double get_y_rms(int);
+		double get_z_rms(int);
+
 };
 #endif

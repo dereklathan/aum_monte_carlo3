@@ -209,6 +209,7 @@ void Cube::advance_timestep_opentop(){
 			}
 		}
 	}
+	calc_rms(unattempted);
 	while(unattempted.size()!=0){
 		index=rand()%unattempted.size();
 		x1=unattempted[index].get_x_pos();
@@ -236,7 +237,7 @@ void Cube::advance_timestep_opentop(){
 				T=nparticlelocation[x2][y2][z2].get_T();
 			else
 				T=temperature;
-			if(/*calculate_pot_energy_opentop(x1,y1,z1,x2,y2,z2)<=calculate_pot_energy_opentop()*/calculate_dE_opentop(x1,y1,z1,x2,y2,z2)<=0 || can_still_move()){
+			if(calculate_pot_energy_opentop(x1,y1,z1,x2,y2,z2)<=calculate_pot_energy_opentop()/*calculate_dE_opentop(x1,y1,z1,x2,y2,z2)<=0*/ || can_still_move()){
 				movecount++;
 				if(z2>=domain_z){
 					atomlocation[x1][y1][z1].set_exists(false);
@@ -608,7 +609,7 @@ double Cube::calculate_dE_opentop(int x1,int y1,int z1,int x2, int y2, int z2){
 		if(x1+c<0)
 			x_index=domain_x+x1+c;
 		else if(x1+c>domain_x-1)
-			x_index=domain_x-1-x1+c;
+			x_index=domain_x-2-x1+c;
 		else
 			x_index=x1+c;
 
@@ -616,7 +617,7 @@ double Cube::calculate_dE_opentop(int x1,int y1,int z1,int x2, int y2, int z2){
 			if(y1+d<0)
 				y_index=domain_y+y1+d;
 			else if(y1+d>domain_y-1)
-				y_index=domain_y-1-y1+d;
+				y_index=domain_y-2-y1+d;
 			else
 				y_index=y1+d;
 			//cout << x1 << " " << c << " " << x_index << " " << y1 << " " << d << " " << y_index << endl;
@@ -625,7 +626,6 @@ double Cube::calculate_dE_opentop(int x1,int y1,int z1,int x2, int y2, int z2){
 					temp[c+2][d+2][e+2].set_exists(false);
 				else{
 					temp[c+2][d+2][e+2]=atomlocation[x_index][y_index][z1+e];
-					temp[c+2][d+2][e+2].set_exists(true);
 				}
 			}
 		}
@@ -772,14 +772,59 @@ void Cube::move_nanoparticles(){
 				dest_z=domain_z-1;
 		}
 		if(!nparticlelocation[dest_x][dest_y][dest_z].get_exists()){
+			nparticlelocation[dest_x][dest_y][dest_z]=unmoved[index];
 			nparticlelocation[unmoved[index].get_x_pos()][unmoved[index].get_y_pos()][unmoved[index].get_z_pos()].set_exists(false);
 			unmoved[index].set_x_pos(dest_x);
 			unmoved[index].set_y_pos(dest_y);
-			unmoved[index].set_z_pos(dest_z);
-			nparticlelocation[dest_x][dest_y][dest_z]=unmoved[index];
+			unmoved[index].set_z_pos(dest_z);	
 		}
 		unmoved[index]=unmoved[unmoved.size()-1];
 		unmoved.pop_back();
 	}
 								
 }
+void Cube::calc_rms(vector<Atom> particles){
+	x_rms.push_back(0);
+	y_rms.push_back(0);
+	z_rms.push_back(0);
+
+	for(int c=0;c<particles.size();c++){
+		x_rms[x_rms.size()-1]+=particles[c].get_x_pos()*particles[c].get_x_pos();
+		y_rms[y_rms.size()-1]+=particles[c].get_y_pos()*particles[c].get_y_pos();
+		z_rms[z_rms.size()-1]+=particles[c].get_z_pos()*particles[c].get_z_pos();
+		x_rms[x_rms.size()-1]/=particles.size();
+		y_rms[y_rms.size()-1]/=particles.size();
+		z_rms[z_rms.size()-1]/=particles.size();
+	}
+	x_rms[x_rms.size()-1]=sqrt(x_rms[x_rms.size()-1]);
+	y_rms[y_rms.size()-1]=sqrt(y_rms[y_rms.size()-1]);
+	z_rms[z_rms.size()-1]=sqrt(z_rms[z_rms.size()-1]);
+}
+
+double Cube::get_x_rms(int t){
+	if(t>=x_rms.size()){
+		cout << "cannot get x_rms because timestep is in the future!\n";
+		return 0;
+	}
+	else
+		return x_rms[t];
+}
+
+double Cube::get_y_rms(int t){
+	if(t>=y_rms.size()){
+		cout << "cannot get y_rms because timestep is in the future!\n";
+		return 0;
+	}
+	else
+		return y_rms[t];
+}		
+
+double Cube::get_z_rms(int t){
+	if(t>=z_rms.size()){
+		cout << "cannot get z_rms because timestep is in the future!\n";
+		return 0;
+	}
+	else
+		return z_rms[t];
+}
+

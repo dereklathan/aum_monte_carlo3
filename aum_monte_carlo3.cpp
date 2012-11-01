@@ -79,6 +79,9 @@ int main(int argc, char *argv[]){
 		cout << "total population: " << cube.get_population() << endl;
 		z_cent_mass[c]/=(double)cube.get_population();
 		cout << "center of mass: " << z_cent_mass[c] << endl;
+		cout << "x rms: " << cube.get_x_rms(c) << endl;
+		cout << "y rms: " << cube.get_y_rms(c) << endl;
+		cout << "z rms: " << cube.get_z_rms(c) << endl;
 		//vtf_writer.write_timestep(cube);
 		graph_interval++;
 		if(graph_interval==infile_reader.get_graph_interval()){
