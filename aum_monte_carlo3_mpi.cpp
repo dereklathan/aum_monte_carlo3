@@ -17,7 +17,7 @@ the particle will escape. diffusion.
 #include <cstdlib>
 #include <string>
 #include <cstring>
-#include "mpi.h"
+#include <mpi.h>
 #include "Atom.h"
 #include "cube.h"
 #include "infile_reader.h"
@@ -47,7 +47,7 @@ int main(int argc, char *argv[]){
 		srand(random);
 	}
 	cube.seed_random(rand());
-	Infile_reader infile_reader((string)argv[1]);
+	Infile_reader infile_reader(/*(string)argv[1]*/"infile");
 	infile_reader.setData();
 	int counts_for_rank[cube.get_domain_z()][infile_reader.get_num_sims()/size];
 	double z_cent_mass[infile_reader.gettimesteps()][infile_reader.get_num_sims()/size];
@@ -122,6 +122,7 @@ int main(int argc, char *argv[]){
 		MPI_Send(&z_cent_mass, infile_reader.gettimesteps()*(infile_reader.get_num_sims()/size), MPI_DOUBLE, 0, 90, MPI_COMM_WORLD);
 		MPI_Send(&flux_in, infile_reader.gettimesteps()*(infile_reader.get_num_sims()/size), MPI_DOUBLE, 0, 89, MPI_COMM_WORLD);
 		MPI_Send(&flux_out, infile_reader.gettimesteps()*(infile_reader.get_num_sims()/size), MPI_DOUBLE, 0, 88, MPI_COMM_WORLD);
+		cout << "test" << endl;
 	}
 	else{
 		int all_counts[cube.get_domain_z()][infile_reader.get_num_sims()];
