@@ -237,7 +237,7 @@ void Cube::advance_timestep_opentop(){
 				T=nparticlelocation[x2][y2][z2].get_T();
 			else
 				T=temperature;
-			if(calculate_pot_energy_opentop(x1,y1,z1,x2,y2,z2)<=calculate_pot_energy_opentop()/*calculate_dE_opentop(x1,y1,z1,x2,y2,z2)<=0*/ || can_still_move()){
+			if(/*calculate_pot_energy_opentop(x1,y1,z1,x2,y2,z2)<=calculate_pot_energy_opentop()*/calculate_dE_opentop(x1,y1,z1,x2,y2,z2)<=0 || can_still_move()){
 				movecount++;
 				if(z2>=domain_z){
 					atomlocation[x1][y1][z1].set_exists(false);
@@ -274,8 +274,8 @@ void Cube::advance_timestep_opentop(){
 		unattempted[index]=unattempted[unattempted.size()-1];
 		unattempted.pop_back();
 	}
-	move_nanoparticles();
-	cout << movecount << " have moved\n";
+	//move_nanoparticles();
+//	cout << movecount << " have moved\n";
 }
 
 double ** Cube::set_interaction_factor(int types){
@@ -604,7 +604,7 @@ double Cube::calculate_dE_opentop(int x1,int y1,int z1,int x2, int y2, int z2){
 	double grav_energy=0;
 	double internal_energy=0;
 	Atom temp[5][5][5];
-	int x_index, y_index, dx, dy, dz;
+	int x_index, y_index, dx=0, dy=0, dz=0;
 	for(int c=-2;c<3;c++){
 		if(x1+c<0)
 			x_index=domain_x+x1+c;
@@ -634,7 +634,7 @@ double Cube::calculate_dE_opentop(int x1,int y1,int z1,int x2, int y2, int z2){
 		for(int d=0;d<5;d++){
 			for(int e=0;e<5;e++){
 				if(temp[c][d][e].get_exists()){
-					grav_energy+=e*temp[c][d][e].get_mass();
+					grav_energy+=temp[c][d][e].get_z_pos()*temp[c][d][e].get_mass();
 					if(c>0 && temp[c-1][d][e].get_exists())
 						internal_energy+=(temp[c][d][e].get_strength()*temp[c-1][d][e].get_strength()*interaction_factor[temp[c][d][e].get_type_num()][temp[c-1][d][e].get_type_num()]);
 					if(c<4 && temp[c+1][d][e].get_exists())
@@ -666,14 +666,20 @@ double Cube::calculate_dE_opentop(int x1,int y1,int z1,int x2, int y2, int z2){
 		dy=1;
 	else
 		dy=y2-y1;
-	temp[2+dx][2+dy][2+z2-z1]=temp[2][2][2];
+	if(!atomlocation[2+dx][2+dy][2+z2-z1].get_exists() && z2>=0)
+		temp[2+dx][2+dy][2+z2-z1]=temp[2][2][2];
+	temp[2+dx][2+dy][2+z2-z1].set_x_pos(x2);
+	temp[2+dx][2+dy][2+z2-z1].set_y_pos(y2);
+	temp[2+dx][2+dy][2+z2-z1].set_x_pos(z2);
 	if(z1!=0 && z2!=1)
 		temp[2][2][2].set_exists(false);
+	if(z2>=domain_z)
+		temp[2+dx][2+dy][2+z2-z1].set_exists(false);
 	for(int c=0;c<5;c++){
 		for(int d=0;d<5;d++){
 			for(int e=0;e<5;e++){
 				if(temp[c][d][e].get_exists()){
-					grav_energy+=e*temp[c][d][e].get_mass();
+					grav_energy+=temp[c][d][e].get_z_pos()*temp[c][d][e].get_mass();
 					if(c>0 && temp[c-1][d][e].get_exists())
 						internal_energy+=(temp[c][d][e].get_strength()*temp[c-1][d][e].get_strength()*interaction_factor[temp[c][d][e].get_type_num()][temp[c-1][d][e].get_type_num()]);
 					if(c<4 && temp[c+1][d][e].get_exists())
@@ -792,13 +798,13 @@ void Cube::calc_rms(vector<Atom> particles){
 		x_rms[x_rms.size()-1]+=particles[c].get_x_pos()*particles[c].get_x_pos();
 		y_rms[y_rms.size()-1]+=particles[c].get_y_pos()*particles[c].get_y_pos();
 		z_rms[z_rms.size()-1]+=particles[c].get_z_pos()*particles[c].get_z_pos();
-		x_rms[x_rms.size()-1]/=particles.size();
-		y_rms[y_rms.size()-1]/=particles.size();
-		z_rms[z_rms.size()-1]/=particles.size();
 	}
-	x_rms[x_rms.size()-1]=sqrt(x_rms[x_rms.size()-1]);
-	y_rms[y_rms.size()-1]=sqrt(y_rms[y_rms.size()-1]);
-	z_rms[z_rms.size()-1]=sqrt(z_rms[z_rms.size()-1]);
+	x_rms[x_rms.size()-1]/=particles.size();
+	y_rms[y_rms.size()-1]/=particles.size();
+	z_rms[z_rms.size()-1]/=particles.size();
+//	x_rms[x_rms.size()-1]=sqrt(x_rms[x_rms.size()-1]);
+//	y_rms[y_rms.size()-1]=sqrt(y_rms[y_rms.size()-1]);
+//	z_rms[z_rms.size()-1]=sqrt(z_rms[z_rms.size()-1]);
 }
 
 double Cube::get_x_rms(int t){

@@ -17,6 +17,7 @@ the particle will escape. diffusion.
 #include <cstdlib>
 #include <string>
 #include <cstring>
+#include <sstream>
 #include <mpi.h>
 #include "Atom.h"
 #include "cube.h"
@@ -49,7 +50,7 @@ int main(int argc, char *argv[]){
 	cube.seed_random(rand());
 	Infile_reader infile_reader(/*(string)argv[1]*/"infile");
 	infile_reader.setData();
-	int counts_for_rank[cube.get_domain_z()][infile_reader.get_num_sims()/size];
+	int counts_for_rank[infile_reader.gettimesteps()/infile_reader.get_graph_interval()][cube.get_domain_z()][infile_reader.get_num_sims()/size];
 	double z_cent_mass[infile_reader.gettimesteps()][infile_reader.get_num_sims()/size];
 	double flux_in[infile_reader.gettimesteps()][infile_reader.get_num_sims()/size];
 	double flux_out[infile_reader.gettimesteps()][infile_reader.get_num_sims()/size];
@@ -73,7 +74,6 @@ int main(int argc, char *argv[]){
 		for(int c=0;c<infile_reader.get_particle_types()-infile_reader.get_nanoparticle_types();c++)
 			temp_int_factor[c] = new double[infile_reader.get_particle_types()-infile_reader.get_nanoparticle_types()];
 		MPI_Recv(&int_factor, (infile_reader.get_particle_types()-infile_reader.get_nanoparticle_types())*(infile_reader.get_particle_types()-infile_reader.get_nanoparticle_types()), MPI_DOUBLE, 0, 97, MPI_COMM_WORLD, &status);
-		cout << "test\n";
 		for(int c=0;c<infile_reader.get_particle_types()-infile_reader.get_nanoparticle_types();c++){
 			for(int d=0;d<infile_reader.get_particle_types()-infile_reader.get_nanoparticle_types();d++)
 				temp_int_factor[c][d] = int_factor[c][d];
@@ -107,25 +107,37 @@ int main(int argc, char *argv[]){
 			flux_out[c][n]=(double)cube.get_flux_out();
 			atom_layer_count=dat_writer.get_timestep_array_z(cube);
 			for(int d=0;d<cube.get_domain_z();d++)
-				z_cent_mass[c][n]+=(c+1)*atom_layer_count[d];
-			z_cent_mass[c][n]/=(double)cube.get_population();	
+				z_cent_mass[c][n]+=(d+1)*atom_layer_count[d];
+			z_cent_mass[c][n]/=(double)cube.get_population();
+			if((c+1)%infile_reader.get_graph_interval()==0){
+				for(int d=0;d<cube.get_domain_z();d++)
+					counts_for_rank[(c+1)/infile_reader.get_graph_interval()-1][d][n]=atom_layer_count[d];
+			}	
 		}
 		
-		for(int c=0;c<cube.get_domain_z();c++){
-			counts_for_rank[c][n]=atom_layer_count[c];
-			cout << rank << ":" << counts_for_rank[c][n] << endl;
-		}
 		cube.clear();
 	}
+	for(int c=0;c<infile_reader.get_num_sims()/size;c++){
+		for(int d=0;d<cube.get_domain_z();d++){
+			if(rank==1)
+				cout << rank << ": " << counts_for_rank[d][c] << endl;
+			}
+	}	
 	if(rank!=0){
-		MPI_Send(&counts_for_rank, cube.get_domain_z()*(infile_reader.get_num_sims()/size), MPI_INT, 0, 99, MPI_COMM_WORLD);
-		MPI_Send(&z_cent_mass, infile_reader.gettimesteps()*(infile_reader.get_num_sims()/size), MPI_DOUBLE, 0, 90, MPI_COMM_WORLD);
-		MPI_Send(&flux_in, infile_reader.gettimesteps()*(infile_reader.get_num_sims()/size), MPI_DOUBLE, 0, 89, MPI_COMM_WORLD);
-		MPI_Send(&flux_out, infile_reader.gettimesteps()*(infile_reader.get_num_sims()/size), MPI_DOUBLE, 0, 88, MPI_COMM_WORLD);
-		cout << "test" << endl;
+		for(int c=0;c<infile_reader.get_num_sims()/size;c++){
+			for(int d=0;d<cube.get_domain_z();d++){
+				for(int e=0;e<infile_reader.gettimesteps()/infile_reader.get_graph_interval();e++)
+					MPI_Send(&counts_for_rank[e][d][c],1, MPI_INT, 0, 99, MPI_COMM_WORLD);
+			}
+			for(int d=0;d<infile_reader.gettimesteps();d++){
+				MPI_Send(&z_cent_mass[d][c], 1, MPI_DOUBLE, 0, 90, MPI_COMM_WORLD);
+				MPI_Send(&flux_in[d][c], 1, MPI_DOUBLE, 0, 89, MPI_COMM_WORLD);
+				MPI_Send(&flux_out[d][c], 1, MPI_DOUBLE, 0, 88, MPI_COMM_WORLD);
+			}
+		}
 	}
 	else{
-		int all_counts[cube.get_domain_z()][infile_reader.get_num_sims()];
+		int all_counts[infile_reader.gettimesteps()/infile_reader.get_graph_interval()][cube.get_domain_z()][infile_reader.get_num_sims()];
 		double all_z_cent_mass[infile_reader.gettimesteps()][infile_reader.get_num_sims()];
 		double all_flux_in[infile_reader.gettimesteps()][infile_reader.get_num_sims()];
 		double all_flux_out[infile_reader.gettimesteps()][infile_reader.get_num_sims()];
@@ -134,59 +146,77 @@ int main(int argc, char *argv[]){
 		double avg_flux_out[infile_reader.gettimesteps()];
 		double z_cent_mass_dev[infile_reader.gettimesteps()][infile_reader.get_num_sims()];
 		double z_cent_mass_std_dev[infile_reader.gettimesteps()];
-		double deviations[cube.get_domain_z()][infile_reader.get_num_sims()];
-		double standard_dev[cube.get_domain_z()];
-		double average[cube.get_domain_z()];
+		double deviations[infile_reader.gettimesteps()/infile_reader.get_graph_interval()][cube.get_domain_z()][infile_reader.get_num_sims()];
+		double standard_dev[infile_reader.gettimesteps()/infile_reader.get_graph_interval()][cube.get_domain_z()];
+		double average[infile_reader.gettimesteps()/infile_reader.get_graph_interval()][cube.get_domain_z()];
+		stringstream convert;
+		string timestep_number_string;
 		for(int c=0;c<infile_reader.get_num_sims()/size;c++){
 			for(int d=0;d<infile_reader.gettimesteps();d++){
 				all_z_cent_mass[d][c]=z_cent_mass[d][c];
 				all_flux_in[d][c]=flux_in[d][c];
 				all_flux_out[d][c]=flux_out[d][c];
 			}
-			for(int d=0;d<cube.get_domain_z();d++)
-				all_counts[d][c]=counts_for_rank[d][c];
+			for(int d=0;d<cube.get_domain_z();d++){
+				for(int e=0;e<infile_reader.gettimesteps()/infile_reader.get_graph_interval();e++)
+					all_counts[e][d][c]=counts_for_rank[e][d][c];
+			}
 		}
 		for(int c=1;c<size;c++){
-			MPI_Recv(&counts_for_rank, cube.get_domain_z()*(infile_reader.get_num_sims()/size), MPI_INT, c, 99, MPI_COMM_WORLD, &status);
-			MPI_Recv(&z_cent_mass, infile_reader.gettimesteps()*(infile_reader.get_num_sims()/size), MPI_DOUBLE, c, 90, MPI_COMM_WORLD, &status);
-			MPI_Recv(&flux_in, infile_reader.gettimesteps()*(infile_reader.get_num_sims()/size), MPI_DOUBLE, c, 89, MPI_COMM_WORLD, &status);
-			MPI_Recv(&flux_out, infile_reader.gettimesteps()*(infile_reader.get_num_sims()/size), MPI_DOUBLE, c, 88, MPI_COMM_WORLD, &status);
-			for(int e=infile_reader.get_num_sims()/size*c;e<(infile_reader.get_num_sims()/size)*(c+1);e++){
-				for(int d=0;d<infile_reader.gettimesteps();d++){
-					all_z_cent_mass[d][e]=z_cent_mass[d][e/c-1];
-					all_flux_in[d][e]=flux_in[d][e/c-1];
-					all_flux_out[d][e]=flux_out[d][e/c-1];
+			for(int d=0;d<infile_reader.get_num_sims()/size;d++){
+				for(int e=0;e<cube.get_domain_z();e++){
+					for(int b=0;b<infile_reader.gettimesteps()/infile_reader.get_graph_interval();b++)
+						MPI_Recv(&counts_for_rank[b][e][d], 1, MPI_INT, c, 99, MPI_COMM_WORLD, &status);
 				}
-				for(int d=0;d<cube.get_domain_z();d++){
-					all_counts[d][e]=counts_for_rank[d][e/c-1];
+				for(int e=0;e<infile_reader.gettimesteps();e++){
+					MPI_Recv(&z_cent_mass[e][d], 1, MPI_DOUBLE, c, 90, MPI_COMM_WORLD, &status);
+					MPI_Recv(&flux_in[e][d], 1, MPI_DOUBLE, c, 89, MPI_COMM_WORLD, &status);
+					MPI_Recv(&flux_out[e][d], 1, MPI_DOUBLE, c, 88, MPI_COMM_WORLD, &status);
 				}
 			}
-			cout << endl;
+			int r=0;
+			for(int e=infile_reader.get_num_sims()/size*c;e<(infile_reader.get_num_sims()/size)*(c+1);e++){
+				for(int d=0;d<infile_reader.gettimesteps();d++){
+					all_z_cent_mass[d][e]=z_cent_mass[d][r];
+					all_flux_in[d][e]=flux_in[d][r];
+					all_flux_out[d][e]=flux_out[d][r];
+				}
+				for(int d=0;d<cube.get_domain_z();d++){
+					for(int b=0;b<infile_reader.gettimesteps()/infile_reader.get_graph_interval();b++)
+						all_counts[b][d][e]=counts_for_rank[b][d][r];
+				}
+				r++;
+			}
 		}
+/*
 		for(int c=0;c<infile_reader.get_num_sims();c++){
 			for(int d=0;d<cube.get_domain_z();d++)
 				cout << all_counts[d][c] << " ";
 			cout << endl;
 		}
-
-		for(int c=0;c<cube.get_domain_z();c++){
-			average[c]=0;
-			standard_dev[c]=0;
-			for(int d=0;d<infile_reader.get_num_sims();d++){
-				average[c]+=(double)all_counts[c][d];
-				deviations[c][d]=all_counts[c][d];
+*/
+		for(int e=0;e<infile_reader.gettimesteps()/infile_reader.get_graph_interval();e++){
+			for(int c=0;c<cube.get_domain_z();c++){
+				average[e][c]=0;
+				standard_dev[e][c]=0;
+				for(int d=0;d<infile_reader.get_num_sims();d++){
+					average[e][c]+=(double)all_counts[e][c][d];
+					deviations[e][c][d]=all_counts[e][c][d];
+				}
+				average[e][c]/=(double)infile_reader.get_num_sims();
 			}
-			average[c]/=(double)infile_reader.get_num_sims();
 		}
 
-		for(int c=0;c<cube.get_domain_z();c++){
-			for(int d=0;d<infile_reader.get_num_sims();d++){
-				deviations[c][d]-=average[c];
-				deviations[c][d]=pow(deviations[c][d],2);
-				standard_dev[c]+=deviations[c][d];
+		for(int e=0;e<infile_reader.gettimesteps()/infile_reader.get_graph_interval();e++){
+			for(int c=0;c<cube.get_domain_z();c++){
+				for(int d=0;d<infile_reader.get_num_sims();d++){
+					deviations[e][c][d]-=average[e][c];
+					deviations[e][c][d]=pow(deviations[e][c][d],2);
+					standard_dev[e][c]+=deviations[e][c][d];
+				}
+				standard_dev[e][c]/=infile_reader.get_num_sims()-1;
+				standard_dev[e][c]=sqrt(standard_dev[e][c]);
 			}
-			standard_dev[c]/=infile_reader.get_num_sims()-1;
-			standard_dev[c]=sqrt(standard_dev[c]);
 		}
 
 		for(int c=0;c<infile_reader.gettimesteps();c++){
@@ -214,28 +244,36 @@ int main(int argc, char *argv[]){
 			z_cent_mass_std_dev[c]/=infile_reader.get_num_sims()-1;
 			z_cent_mass_std_dev[c]=sqrt(z_cent_mass_std_dev[c]);
 		}
+/*
 		for(int c=0;c<cube.get_domain_z();c++)
 			cout << average[c] << " ";
 		cout << endl;
 		for(int c=0;c<cube.get_domain_z();c++)
 			cout << standard_dev[c]/average[c]*100 << " ";
 		cout << endl;
-
+*/
 		ofstream aver;
 		ofstream dev;
 		ofstream z_cent_mass_file;
 		ofstream z_cent_mass_dev_file;
 		ofstream flux_in_file;
 		ofstream flux_out_file;
-		aver.open((infile_reader.getoutfilename() + ".dat").c_str(), ios::out);
-		dev.open((infile_reader.getoutfilename() + "_deviations.dat").c_str(), ios::out);
 		z_cent_mass_file.open((infile_reader.getoutfilename() + "_z_cent_mass.dat").c_str(), ios::out);
 		z_cent_mass_dev_file.open((infile_reader.getoutfilename() + "_z_cent_mass_dev.dat").c_str(), ios::out);
 		flux_in_file.open((infile_reader.getoutfilename() + "_flux_in.dat").c_str(),ios::out);
 		flux_out_file.open((infile_reader.getoutfilename() + "_flux_out.dat").c_str(),ios::out);
-		for(int c=0;c<cube.get_domain_z();c++){
-			aver << c << " " << average[c] << endl;
-			dev << c << " " << standard_dev[c]/average[c]*100 << endl;
+		for(int d=0;d<infile_reader.gettimesteps()/infile_reader.get_graph_interval();d++){
+			convert << (d+1)*infile_reader.get_graph_interval();
+			timestep_number_string=convert.str();
+			aver.open((infile_reader.getoutfilename() + "_" + timestep_number_string + ".dat").c_str(), ios::out);
+			dev.open((infile_reader.getoutfilename() + "_" + timestep_number_string + "_deviations.dat").c_str(), ios::out);
+			for(int c=0;c<cube.get_domain_z();c++){
+				aver << c << " " << average[d][c] << endl;
+				dev << c << " " << standard_dev[d][c]/average[d][c]*100 << endl;
+			}
+			aver.close();
+			dev.close();
+			convert.str("");
 		}
 		for(int c=0;c<infile_reader.gettimesteps();c++){
 			z_cent_mass_file << c+1 << " " << avg_z_cent_mass[c] << endl;
