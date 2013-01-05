@@ -107,7 +107,7 @@ int main(int argc, char *argv[]){
 			flux_out[c][n]=(double)cube.get_flux_out();
 			atom_layer_count=dat_writer.get_timestep_array_z(cube);
 			for(int d=0;d<cube.get_domain_z();d++)
-				z_cent_mass[c][n]+=(d+1)*atom_layer_count[d];
+				z_cent_mass[c][n]+=d*atom_layer_count[d];
 			z_cent_mass[c][n]/=(double)cube.get_population();
 			if((c+1)%infile_reader.get_graph_interval()==0){
 				for(int d=0;d<cube.get_domain_z();d++)
