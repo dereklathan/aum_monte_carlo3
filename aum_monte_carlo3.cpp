@@ -26,6 +26,7 @@ int main(int argc, char *argv[]){
 	srand(time(NULL));
 	Infile_reader infile_reader((string)argv[1]);
 	infile_reader.setData();
+	cout << infile_reader.get_nparticle_move_count() << endl;
 	cout << infile_reader.getpercentdomainfill()[1] << endl;
 	cout << infile_reader.get_nanoparticle_temp()[1] << endl;
 	vtf_file_writer vtf_writer(infile_reader.getoutfilename());
@@ -39,6 +40,7 @@ int main(int argc, char *argv[]){
 	Cube cube;
 	cube.set_domain(infile_reader.getunitcellsize()[0], infile_reader.getunitcellsize()[1], infile_reader.getunitcellsize()[2]);
 	cube.set_temp(infile_reader.get_temp());
+	cube.set_nparticle_move_count(infile_reader.get_nparticle_move_count());
 	Atom atom;
 	Nanoparticle nanoparticle;
 	for(int c=0;c<infile_reader.get_particle_types();c++){

@@ -32,6 +32,9 @@ void Infile_reader::setData(){
 	while(reader.peek()!='\n')
 		reader.get();
 	reader >> particle_types;
+	while(reader.peek()!='\n')
+		reader.get();
+	reader >> nparticle_move_count;
 	particle_name = new string [particle_types];
 	for(int c=0;c<particle_types;c++)
 		particle_name[c]="";
@@ -147,4 +150,6 @@ int* Infile_reader::get_boundary_conditions(){
 double Infile_reader::get_temp(){return temperature;}
 
 int Infile_reader::get_num_sims(){return num_sims;}
+
+unsigned int Infile_reader::get_nparticle_move_count(){return nparticle_move_count;}
 

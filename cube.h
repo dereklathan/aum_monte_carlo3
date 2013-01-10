@@ -27,6 +27,7 @@ class Cube{
 		vector<double> x_rms;
 		vector<double> y_rms;
 		vector<double> z_rms;
+		unsigned int nparticle_move_count;
 
 		//moves all nanoparticles
 
@@ -100,6 +101,7 @@ class Cube{
 		double get_x_rms(int);
 		double get_y_rms(int);
 		double get_z_rms(int);
+		void set_nparticle_move_count(unsigned int);
 
 };
 #endif

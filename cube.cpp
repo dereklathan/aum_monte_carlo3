@@ -274,7 +274,8 @@ void Cube::advance_timestep_opentop(){
 		unattempted[index]=unattempted[unattempted.size()-1];
 		unattempted.pop_back();
 	}
-	//move_nanoparticles();
+	for(int c=0;c<nparticle_move_count;c++)
+		move_nanoparticles();
 //	cout << movecount << " have moved\n";
 }
 
@@ -777,6 +778,13 @@ void Cube::move_nanoparticles(){
 			else if(dest_z<0)
 				dest_z=domain_z-1;
 		}
+		if(atomlocation[unmoved[index].get_x_pos()][unmoved[index].get_y_pos()][unmoved[index].get_z_pos()].get_exists() && !atomlocation[dest_x][dest_y][dest_z].get_exists()){
+			atomlocation[dest_x][dest_y][dest_z]=atomlocation[unmoved[index].get_x_pos()][unmoved[index].get_y_pos()][unmoved[index].get_z_pos()];
+			atomlocation[dest_x][dest_y][dest_z].set_x_pos(dest_x);
+			atomlocation[dest_x][dest_y][dest_z].set_y_pos(dest_y);
+			atomlocation[dest_x][dest_y][dest_z].set_z_pos(dest_z);
+			atomlocation[unmoved[index].get_x_pos()][unmoved[index].get_y_pos()][unmoved[index].get_z_pos()].set_exists(false);
+		}
 		if(!nparticlelocation[dest_x][dest_y][dest_z].get_exists()){
 			nparticlelocation[dest_x][dest_y][dest_z]=unmoved[index];
 			nparticlelocation[unmoved[index].get_x_pos()][unmoved[index].get_y_pos()][unmoved[index].get_z_pos()].set_exists(false);
@@ -834,3 +842,4 @@ double Cube::get_z_rms(int t){
 		return z_rms[t];
 }
 
+void Cube::set_nparticle_move_count(unsigned int moves){nparticle_move_count=moves;}

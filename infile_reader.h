@@ -24,6 +24,7 @@ class Infile_reader{
 		int boundary_conditions[3];
 		double temperature;
 		int num_sims;
+		unsigned int nparticle_move_count;
 		
 	public:
 		Infile_reader();
@@ -64,6 +65,9 @@ class Infile_reader{
 		int get_num_sims();
 		//returns number of simulations to run
 		int get_nanoparticle_types();
+		//returns number of nanoparticle types defined
+		unsigned int get_nparticle_move_count();
+		//returns number of times nanoparticle move per timestep
 
 		
 };

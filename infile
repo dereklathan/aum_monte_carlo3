@@ -5,6 +5,7 @@ test#name for output files
 100#number of timesteps
 20#graph interval (create graph every time this many timesteps have passed)
 2#how many particle types to define
+1#number of times nanoparticles move per timestep
 0#boundary conditions for x-axis. 0 for periodic.
 0#boundary conditions for y-axis. 0 for periodic.
 0#boundary conditions for z-axis. 0 for periodic.
