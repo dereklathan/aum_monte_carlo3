@@ -5,6 +5,7 @@
 #include <ctime>
 #include <cstdlib>
 #include <cmath>
+#include <stack>
 #include "Atom.h"
 #include "nanoparticle.h"
 #include <vector>
@@ -13,7 +14,7 @@ class Cube{
 	private:
 		Atom *** atomlocation;
 		Nanoparticle *** nparticlelocation;
-		double population;
+		double population, n_population;
 		int left_to_attempt;
 		int domain_x, domain_y, domain_z;
 		bool all_attempted();
@@ -28,7 +29,7 @@ class Cube{
 		vector<double> y_rms;
 		vector<double> z_rms;
 		unsigned int nparticle_move_count;
-
+		stack<int> avail_index;
 		//moves all nanoparticles
 
 	public:		
@@ -62,6 +63,7 @@ class Cube{
 		//attempts to insert nanoparticle into specified location if possible. returns true if successful. false otherwise.
 		Atom get_atom(int, int, int);
 		//returns atom from specified coordinates
+		Nanoparticle get_nanoparticle(int,int,int);
 		void set_occupy_space(int, int, int, bool);
 		//given x,y,z coordinates respectively, sets space occupied(true) or vacant(false)
 		bool get_occupy_space(int, int, int);

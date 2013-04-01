@@ -10,7 +10,7 @@ using namespace std;
 
 class vtf_file_writer{
 	private:
-		ofstream outfile;
+		ofstream outfile, nparticle_file;
 	public:
 		vtf_file_writer(){};
 		//default constructor
@@ -27,5 +27,6 @@ class vtf_file_writer{
 		//int to second int of type string 
 		void write_timestep(Cube);
 		//sets positions of atoms and unitcell params
+		void define_nanoparticles(int,int,string);
 };
 #endif

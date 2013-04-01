@@ -4,9 +4,12 @@ using namespace std;
 Cube::Cube(){
 	srand(time(NULL));
 	population=0;
+	n_population=0;
 	fixedcount=0;
 	flux_in=0;
 	flux_out=0;
+	for(int c=10000;c>=0;c--)
+		avail_index.push(c);
 }
 
 void Cube::set_domain(int x, int y, int z){
@@ -18,18 +21,29 @@ void Cube::set_domain(int x, int y, int z){
 	for(int c=0;c<x;c++){
 		atomlocation[c] = new Atom*[y];
 		nparticlelocation[c] = new Nanoparticle*[y];
+		for(int d=0;d<=y;d++){
+			atomlocation[c][d] = new Atom[z];
+			nparticlelocation[c][d] = new Nanoparticle[z];
+			for(int e=0;e<z;e++){
+				atomlocation[c][d][e].set_exists(false);
+				nparticlelocation[c][d][e].set_exists(false);
+			}
+		}
+
 	}
-	for(int c=0;c<x;c++){
+/*	for(int c=0;c<x;c++){
 		for(int d=0;d<=y;d++){
 			atomlocation[c][d] = new Atom[z];
 			nparticlelocation[c][d] = new Nanoparticle[z];
 		}
 	}
+*/
 }
 
 void Cube::clear(){
 	population=0;
 	fixedcount=0;
+	n_population=0;
 	for(int c=0;c<domain_x;c++){
 		for(int d=0;d<domain_y;d++){
 			for(int e=0;e<domain_z;e++){
@@ -76,7 +90,8 @@ Atom Cube::insert_atom(Atom &atom){
 	}
 	else
 		atom.set_attempted(false);
-	atom.set_index(population);
+	atom.set_index(avail_index.top());
+	avail_index.pop();
 	population++;
 	atomlocation[xval][yval][zval]=atom;
 	return atom;
@@ -96,6 +111,8 @@ Nanoparticle Cube::insert_nanoparticle(Nanoparticle &nparticle){
 	nparticle.set_y_pos(yval);
 	nparticle.set_z_pos(zval);
 	nparticle.set_exists(true);
+	n_population++;
+	nparticle.set_index(n_population);
 	nparticlelocation[xval][yval][zval]=nparticle;
 	return nparticle;
 }
@@ -112,7 +129,8 @@ bool Cube::insert_atom(Atom &atom, int x, int y, int z){
 			atom.set_attempted(true);
 		else
 			atom.set_attempted(false);
-		atom.set_index(population);
+		atom.set_index(avail_index.top());
+		avail_index.pop();
 		population++;
 		atomlocation[x][y][z]=atom;
 		return true;
@@ -121,6 +139,10 @@ bool Cube::insert_atom(Atom &atom, int x, int y, int z){
 
 Atom Cube::get_atom(int x, int y, int z){
 		return atomlocation[x][y][z];
+}
+
+Nanoparticle Cube::get_nanoparticle(int x, int y, int z){
+		return nparticlelocation[x][y][z];
 }
 
 void Cube::set_occupy_space(int x, int y, int z, bool occupied){
@@ -240,6 +262,8 @@ void Cube::advance_timestep_opentop(){
 			if(/*calculate_pot_energy_opentop(x1,y1,z1,x2,y2,z2)<=calculate_pot_energy_opentop()*/calculate_dE_opentop(x1,y1,z1,x2,y2,z2)<=0 || can_still_move()){
 				movecount++;
 				if(z2>=domain_z){
+					avail_index.push(atomlocation[x1][y1][z1].get_index());
+					cout << "avail " << avail_index.size() << endl;
 					atomlocation[x1][y1][z1].set_exists(false);
 					population--;
 					flux_out++;
@@ -778,20 +802,42 @@ void Cube::move_nanoparticles(){
 			else if(dest_z<0)
 				dest_z=domain_z-1;
 		}
-		if(atomlocation[unmoved[index].get_x_pos()][unmoved[index].get_y_pos()][unmoved[index].get_z_pos()].get_exists() && !atomlocation[dest_x][dest_y][dest_z].get_exists()){
-			atomlocation[dest_x][dest_y][dest_z]=atomlocation[unmoved[index].get_x_pos()][unmoved[index].get_y_pos()][unmoved[index].get_z_pos()];
-			atomlocation[dest_x][dest_y][dest_z].set_x_pos(dest_x);
-			atomlocation[dest_x][dest_y][dest_z].set_y_pos(dest_y);
-			atomlocation[dest_x][dest_y][dest_z].set_z_pos(dest_z);
-			if(unmoved[index].get_z_pos()!=0)
+		if(unmoved[index].get_z_pos()==domain_z-1 && atomlocation[unmoved[index].get_x_pos()][unmoved[index].get_y_pos()][unmoved[index].get_z_pos()].get_exists() && dest_z==0){
+			avail_index.push(atomlocation[unmoved[index].get_x_pos()][unmoved[index].get_y_pos()][unmoved[index].get_z_pos()].get_index());
+			atomlocation[unmoved[index].get_x_pos()][unmoved[index].get_y_pos()][unmoved[index].get_z_pos()].set_exists(false);
+			population--;
+			flux_out++;
+		}
+		else if(atomlocation[unmoved[index].get_x_pos()][unmoved[index].get_y_pos()][unmoved[index].get_z_pos()].get_exists() && !atomlocation[dest_x][dest_y][dest_z].get_exists()){
+			if(unmoved[index].get_z_pos()==0 && dest_z==domain_z-1);
+			else if(unmoved[index].get_z_pos()!=0){
 				atomlocation[unmoved[index].get_x_pos()][unmoved[index].get_y_pos()][unmoved[index].get_z_pos()].set_exists(false);
+				atomlocation[dest_x][dest_y][dest_z]=atomlocation[unmoved[index].get_x_pos()][unmoved[index].get_y_pos()][unmoved[index].get_z_pos()];
+				atomlocation[dest_x][dest_y][dest_z].set_x_pos(dest_x);
+				atomlocation[dest_x][dest_y][dest_z].set_y_pos(dest_y);
+				atomlocation[dest_x][dest_y][dest_z].set_z_pos(dest_z);
+				atomlocation[dest_x][dest_y][dest_z].set_exists(true);
+			}
+			else{
+				atomlocation[unmoved[index].get_x_pos()][unmoved[index].get_y_pos()][unmoved[index].get_z_pos()].set_index(avail_index.top());
+				avail_index.pop();
+				population++;
+				flux_in++;
+				atomlocation[dest_x][dest_y][dest_z]=atomlocation[unmoved[index].get_x_pos()][unmoved[index].get_y_pos()][unmoved[index].get_z_pos()];
+				atomlocation[dest_x][dest_y][dest_z].set_x_pos(dest_x);
+				atomlocation[dest_x][dest_y][dest_z].set_y_pos(dest_y);
+				atomlocation[dest_x][dest_y][dest_z].set_z_pos(dest_z);	
+				atomlocation[dest_x][dest_y][dest_z].set_exists(true);
+			}
+
 		}
 		if(!nparticlelocation[dest_x][dest_y][dest_z].get_exists()){
-			nparticlelocation[dest_x][dest_y][dest_z]=unmoved[index];
 			nparticlelocation[unmoved[index].get_x_pos()][unmoved[index].get_y_pos()][unmoved[index].get_z_pos()].set_exists(false);
 			unmoved[index].set_x_pos(dest_x);
 			unmoved[index].set_y_pos(dest_y);
-			unmoved[index].set_z_pos(dest_z);	
+			unmoved[index].set_z_pos(dest_z);
+			nparticlelocation[dest_x][dest_y][dest_z]=unmoved[index];
+	
 		}
 		unmoved[index]=unmoved[unmoved.size()-1];
 		unmoved.pop_back();

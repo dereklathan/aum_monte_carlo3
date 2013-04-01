@@ -7,6 +7,7 @@ class Nanoparticle{
 		bool exists;
 		double T;
 		int x_pos, y_pos, z_pos;
+		double index;
 	public:
 		Nanoparticle();
 		//constructor
@@ -19,6 +20,8 @@ class Nanoparticle{
 		void set_z_pos(int);
 		int get_x_pos();
 		int get_y_pos();
-		int get_z_pos();		
+		int get_z_pos();
+		void set_index(double);
+		double get_index();		
 };
 #endif

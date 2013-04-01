@@ -50,18 +50,19 @@ int main(int argc, char *argv[]){
 			atom.set_strength(infile_reader.get_strength()[c]);
 			atom.set_mass(infile_reader.get_mass()[c]);
 			atom.set_fixed(infile_reader.is_fixed()[c]);
-			for(float d=0;d<((float)cube.get_domain_x()*(float)cube.get_domain_y()*infile_reader.getpercentdomainfill()[c])/100;d++){
+			for(double d=0;d<((double)cube.get_domain_x()*(double)cube.get_domain_y()*infile_reader.getpercentdomainfill()[c])/100;d++){
 				atom.set_replaceable(true);
 				while(!cube.insert_atom(atom, rand()%cube.get_domain_x(), rand()%cube.get_domain_y(), 0));
 			}		
 		}
 		else{
 			nanoparticle.set_T(infile_reader.get_nanoparticle_temp()[c]);
-			for(float d=0;d<((float)cube.get_domain_x()*(float)cube.get_domain_y()*(float)cube.get_domain_z()*infile_reader.getpercentdomainfill()[c])/100;d++)
+			for(double d=0;d<((double)cube.get_domain_x()*(double)cube.get_domain_y()*(double)cube.get_domain_z()*infile_reader.getpercentdomainfill()[c])/100;d++)
 				cube.insert_nanoparticle(nanoparticle);
 		}
 	}
 	vtf_writer.define_atoms(0,10000,"particle");
+	vtf_writer.define_nanoparticles(0,10000,"particle");
 	vtf_writer.write_timestep(cube);
 	dat_writer.write_timestep_graph_z(cube,0);
 	cube.set_interaction_factor(infile_reader.get_particle_types()-infile_reader.get_nanoparticle_types());
@@ -76,15 +77,10 @@ int main(int argc, char *argv[]){
 		flux_out[c]=cube.get_flux_out();
 		for(int d=0;d<cube.get_domain_z();d++){
 			z_cent_mass[c]+=(d+1)*atom_layer_count[d];
-			cout << atom_layer_count[d] << endl;
 		}
 		cout << "total population: " << cube.get_population() << endl;
 		z_cent_mass[c]/=(double)cube.get_population();
-		cout << "center of mass: " << z_cent_mass[c] << endl;
-		cout << "x rms: " << cube.get_x_rms(c) << endl;
-		cout << "y rms: " << cube.get_y_rms(c) << endl;
-		cout << "z rms: " << cube.get_z_rms(c) << endl;
-		//vtf_writer.write_timestep(cube);
+		vtf_writer.write_timestep(cube);
 		graph_interval++;
 		if(graph_interval==infile_reader.get_graph_interval()){
 			dat_writer.write_timestep_graph_z(cube, c+1);

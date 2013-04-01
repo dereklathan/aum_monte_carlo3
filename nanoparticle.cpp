@@ -34,3 +34,9 @@ using namespace std;
 	int Nanoparticle::get_z_pos(){
 		return z_pos;
 	}
+	void Nanoparticle::set_index(double i){
+		index=i;
+	}
+	double Nanoparticle::get_index(){
+		return index;
+	}
