@@ -8,8 +8,6 @@ Cube::Cube(){
 	fixedcount=0;
 	flux_in=0;
 	flux_out=0;
-	for(int c=10000;c>=0;c--)
-		avail_index.push(c);
 }
 
 void Cube::set_domain(int x, int y, int z){
@@ -31,6 +29,8 @@ void Cube::set_domain(int x, int y, int z){
 		}
 
 	}
+	for(double c=(double)x*(double)y*(double)z;c>=0;c--)
+		avail_index.push(c);
 /*	for(int c=0;c<x;c++){
 		for(int d=0;d<=y;d++){
 			atomlocation[c][d] = new Atom[z];
