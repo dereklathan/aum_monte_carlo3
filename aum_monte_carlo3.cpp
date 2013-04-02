@@ -38,6 +38,7 @@ int main(int argc, char *argv[]){
 	double flux_in[infile_reader.gettimesteps()];
 	double flux_out[infile_reader.gettimesteps()];
 	Cube cube;
+	cout << infile_reader.getunitcellsize()[0] << " " << infile_reader.getunitcellsize()[1] << " " <<  infile_reader.getunitcellsize()[2] << endl;
 	cube.set_domain(infile_reader.getunitcellsize()[0], infile_reader.getunitcellsize()[1], infile_reader.getunitcellsize()[2]);
 	cube.set_temp(infile_reader.get_temp());
 	cube.set_nparticle_move_count(infile_reader.get_nparticle_move_count());

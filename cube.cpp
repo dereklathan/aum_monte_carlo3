@@ -19,7 +19,7 @@ void Cube::set_domain(int x, int y, int z){
 	for(int c=0;c<x;c++){
 		atomlocation[c] = new Atom*[y];
 		nparticlelocation[c] = new Nanoparticle*[y];
-		for(int d=0;d<=y;d++){
+		for(int d=0;d<y;d++){
 			atomlocation[c][d] = new Atom[z];
 			nparticlelocation[c][d] = new Nanoparticle[z];
 			for(int e=0;e<z;e++){
@@ -29,7 +29,7 @@ void Cube::set_domain(int x, int y, int z){
 		}
 
 	}
-	for(double c=(double)x*(double)y*(double)z;c>=0;c--)
+	for(int c=x*y*z;c>=0;c--)
 		avail_index.push(c);
 /*	for(int c=0;c<x;c++){
 		for(int d=0;d<=y;d++){
@@ -111,8 +111,8 @@ Nanoparticle Cube::insert_nanoparticle(Nanoparticle &nparticle){
 	nparticle.set_y_pos(yval);
 	nparticle.set_z_pos(zval);
 	nparticle.set_exists(true);
-	n_population++;
 	nparticle.set_index(n_population);
+	n_population++;
 	nparticlelocation[xval][yval][zval]=nparticle;
 	return nparticle;
 }
