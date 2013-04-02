@@ -48,7 +48,7 @@ int main(int argc, char *argv[]){
 		srand(random);
 	}
 	cube.seed_random(rand());
-	Infile_reader infile_reader(/*(string)argv[1]*/"infile");
+	Infile_reader infile_reader((string)argv[1]/*"infile"*/);
 	infile_reader.setData();
 	cube.set_nparticle_move_count(infile_reader.get_nparticle_move_count());
 	int counts_for_rank[infile_reader.gettimesteps()/infile_reader.get_graph_interval()][cube.get_domain_z()][infile_reader.get_num_sims()/size];
@@ -96,7 +96,7 @@ int main(int argc, char *argv[]){
 			}
 			else{
 				nanoparticle.set_T(infile_reader.get_nanoparticle_temp()[c]);
-				for(float d=0;d<((float)cube.get_domain_x()*(float)cube.get_domain_y()*(float)cube.get_domain_z()*infile_reader.getpercentdomainfill()[c])/100;d++)
+				for(double d=0;d<((double)cube.get_domain_x()*(double)cube.get_domain_y()*(double)cube.get_domain_z()*infile_reader.getpercentdomainfill()[c])/100;d++)
 				cube.insert_nanoparticle(nanoparticle);
 			}
 		}

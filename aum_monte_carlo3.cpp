@@ -77,7 +77,7 @@ int main(int argc, char *argv[]){
 		flux_in[c]=cube.get_flux_in();
 		flux_out[c]=cube.get_flux_out();
 		for(int d=0;d<cube.get_domain_z();d++){
-			z_cent_mass[c]+=(d+1)*atom_layer_count[d];
+			z_cent_mass[c]+=d*atom_layer_count[d];
 		}
 		cout << "total population: " << cube.get_population() << endl;
 		z_cent_mass[c]/=(double)cube.get_population();
