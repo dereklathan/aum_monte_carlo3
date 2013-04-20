@@ -32,10 +32,10 @@ void vtf_file_writer::write_timestep(Cube cube){
 		for(int d=0;d<cube.get_domain_y();d++){
 			for(int e=0;e<cube.get_domain_z();e++){
 				if(cube.get_atom(c,d,e).get_exists()){
-					outfile << cube.get_atom(c,d,e).get_index() << " " << cube.get_atom(c,d,e).get_x_pos() << ".0 " << cube.get_atom(c,d,e).get_y_pos() << ".0 " << cube.get_atom(c,d,e).get_z_pos() << ".0" << endl;
+					outfile << cube.get_atom(c,d,e).get_index() << " " << cube.get_atom(c,d,e).get_x_pos()-floor(cube.get_domain_x()/2) << ".0 " << cube.get_atom(c,d,e).get_y_pos()-floor(cube.get_domain_y()/2) << ".0 " << cube.get_atom(c,d,e).get_z_pos()-floor(cube.get_domain_z()/2) << ".0" << endl;
 				}
 				if(cube.get_nanoparticle(c,d,e).get_exists()){
-					nparticle_file << cube.get_nanoparticle(c,d,e).get_index() << " " << cube.get_nanoparticle(c,d,e).get_x_pos() << ".0 " << cube.get_nanoparticle(c,d,e).get_y_pos() << ".0 " << cube.get_nanoparticle(c,d,e).get_z_pos() << ".0" << endl;
+					nparticle_file << cube.get_nanoparticle(c,d,e).get_index() << " " << cube.get_nanoparticle(c,d,e).get_x_pos()-floor(cube.get_domain_x()/2) << ".0 " << cube.get_nanoparticle(c,d,e).get_y_pos()-floor(cube.get_domain_y()/2) << ".0 " << cube.get_nanoparticle(c,d,e).get_z_pos()-floor(cube.get_domain_z()/2) << ".0" << endl;
 				}
 					
 			}

@@ -29,7 +29,7 @@ class Cube{
 		vector<double> y_rms;
 		vector<double> z_rms;
 		unsigned int nparticle_move_count;
-		stack<unsigned int> avail_index;
+		stack<int> avail_index;
 		//moves all nanoparticles
 
 	public:		
